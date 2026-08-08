@@ -711,7 +711,7 @@ function localDbRead() {
   return data;
  } catch(e) { return { users: [Object.assign({}, DEFAULT_ACCOUNT)], notifications: [], signupRequests: [] }; }
 }
-}
+
 
 function localDbWrite(data) {
  try { localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(data)); } catch(e) {}
