@@ -1,2049 +1,2239 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Star Collector - Enhanced</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E⭐%3C/text%3E%3C/svg%3E">
-    <style>
-        /* Base theme CSS variables - default is Dark Mode */
-        :root {
-            --bg-color: #111424;
-            --text-color: #ffffff;
-            --panel-bg: #1b1f38;
-            --border-color: #4a55a2;
-            --select-bg: #4a55a2;
-            --select-border: #5c6bc0;
-            --select-text: #ffffff;
-            --label-color: #b3b9df;
-            
-            /* Star colors - normal mode */
-            --star-color: #FFD700;
-            --star-stroke: #FFA500;
-        }
-
-        /* Light Mode theme adjustments override */
-        [data-theme="light"] {
-            --bg-color: #f0f2f9;
-            --text-color: #111424;
-            --panel-bg: #ffffff;
-            --border-color: #4a55a2;
-            --select-bg: #ffffff;
-            --select-border: #4a55a2;
-            --select-text: #111424;
-            --label-color: #4a55a2;
-        }
-
-        /* COLORBLIND MODE: Deuteranopia (Red-Green Colorblind) */
-        [data-colorblind="deuteranopia"] {
-            --star-color: #0173B2;
-            --star-stroke: #DE8F05;
-        }
-
-        /* COLORBLIND MODE: Protanopia (Red Colorblind) */
-        [data-colorblind="protanopia"] {
-            --star-color: #029E73;
-            --star-stroke: #0173B2;
-        }
-
-        /* COLORBLIND MODE: Tritanopia (Blue-Yellow Colorblind) */
-        [data-colorblind="tritanopia"] {
-            --star-color: #D55E00;
-            --star-stroke: #CC79A7;
-        }
-
-        /* Base page styling using theme variables */
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            min-height: 100vh;
-            box-sizing: border-box;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        /* ===== ANIMATIONS ===== */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes slideInLeft {
-            from { opacity: 0; transform: translateX(-30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        @keyframes slideInRight {
-            from { opacity: 0; transform: translateX(30px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        @keyframes scaleUp {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        @keyframes glow {
-            0%, 100% { text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
-            50% { text-shadow: 0 0 20px rgba(255, 215, 0, 0.7); }
-        }
-
-        @keyframes starPulse {
-            0%, 100% { filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5)); }
-            50% { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.9)); }
-        }
-
-        /* Apply animations to panels */
-        #loginPanel, #mainMenuPanel, #settingsPanel, #termsPanel {
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        /* Container to ensure a clean vertical layout flow */
-        .wrapper {
-            width: 100%;
-            max-width: 600px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Style for the website logo and its fallback container */
-        .logo-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 10px auto 10px auto;
-            min-height: 80px;
-            animation: slideInDown 0.5s ease-out;
-        }
-
-        @keyframes slideInDown {
-            from { opacity: 0; transform: translateY(-30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .site-logo {
-            max-width: 120px;
-            height: auto;
-            display: block;
-        }
-
-        .fallback-logo {
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            width: 70px;
-            height: 70px;
-            border-radius: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
-            animation: pulse 2s infinite alternate;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.08); }
-        }
-
-        h1 {
-            margin: 0 0 15px 0;
-            font-weight: 800;
-            letter-spacing: 1px;
-            color: var(--text-color);
-            font-size: 36px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            animation: glow 2s ease-in-out infinite;
-        }
-
-        /* Menu layout card using variables */
-        #menu {
-            background-color: var(--panel-bg);
-            border: 4px solid var(--border-color);
-            border-radius: 12px;
-            width: 100%;
-            max-width: 320px;
-            margin: 15px auto;
-            padding: 25px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-            box-sizing: border-box;
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-
-        .menu-element {
-            margin: 15px 0;
-            display: flex;
-            justify-content: center;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        /* Panel Views */
-        #loginPanel { display: block; width: 100%; }
-        #mainMenuPanel { display: none; width: 100%; }
-        #settingsPanel { display: none; width: 100%; }
-        #termsPanel { display: none; width: 100%; }
-        #adminNotificationsPanel { display: none; width: 100%; }
-        #missedGamesPanel { display: none; width: 100%; }
-        #leaderboardPanel { display: none; width: 100%; }
-        #adminDashboardPanel { display: none; width: 100%; }
-        #guestNamePanel { display: none; width: 100%; }
-        #guestWaitingPanel { display: none; width: 100%; }
-        #resetRequestPanel { display: none; width: 100%; }
-        #resetVerifyPanel { display: none; width: 100%; }
-        #resetNewPasswordPanel { display: none; width: 100%; }
-
-        /* ===== PAUSE OVERLAY ===== */
-        #pauseOverlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 500;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(5px);
-        }
-
-        #pauseOverlay.active {
-            display: flex;
-        }
-
-        #pauseBox {
-            background-color: var(--panel-bg);
-            border: 3px solid var(--border-color);
-            border-radius: 12px;
-            padding: 40px;
-            text-align: center;
-            animation: scaleUp 0.3s ease-out;
-        }
-
-        #pauseBox h2 {
-            color: #FFD700;
-            font-size: 48px;
-            margin: 0 0 20px 0;
-        }
-
-        #pauseBox p {
-            color: var(--text-color);
-            font-size: 16px;
-            margin: 10px 0;
-        }
-
-        #pauseBox .pause-controls {
-            margin-top: 25px;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        #pauseBox button {
-            font-size: 16px;
-            padding: 12px 24px;
-            margin: 0;
-        }
-
-        /* Input styles */
-        input {
-            font-size: 16px;
-            padding: 10px 14px;
-            border-radius: 6px;
-            background-color: var(--select-bg);
-            color: var(--select-text);
-            border: 2px solid var(--select-border);
-            outline: none;
-            width: 100%;
-            box-sizing: border-box;
-            transition: all 0.2s;
-            margin-bottom: 12px;
-        }
-
-        input::placeholder {
-            color: var(--label-color);
-            opacity: 0.6;
-        }
-
-        input:focus {
-            border-color: #FFD700;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-        }
-
-        .form-label {
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 6px;
-            color: var(--label-color);
-            text-align: left;
-            width: 100%;
-        }
-
-        /* ===== PASSWORD STRENGTH METER ===== */
-        .password-strength-meter {
-            width: 100%;
-            height: 6px;
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-            margin: 8px 0;
-            overflow: hidden;
-        }
-
-        .password-strength-bar {
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s, background-color 0.3s;
-            border-radius: 3px;
-        }
-
-        .password-strength-bar.weak {
-            width: 25%;
-            background-color: #d9534f;
-        }
-
-        .password-strength-bar.fair {
-            width: 50%;
-            background-color: #f0ad4e;
-        }
-
-        .password-strength-bar.good {
-            width: 75%;
-            background-color: #5cb85c;
-        }
-
-        .password-strength-bar.strong {
-            width: 100%;
-            background-color: #5cb85c;
-        }
-
-        .password-strength-text {
-            font-size: 12px;
-            margin-top: 4px;
-            height: 16px;
-        }
-
-        .password-strength-text.weak {
-            color: #d9534f;
-        }
-
-        .password-strength-text.fair {
-            color: #f0ad4e;
-        }
-
-        .password-strength-text.good,
-        .password-strength-text.strong {
-            color: #5cb85c;
-        }
-
-        /* Auth tabs and messages */
-        .auth-tabs {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            margin-bottom: 15px;
-        }
-
-        .auth-tab {
-            flex: 1;
-            font-size: 14px;
-            padding: 8px 12px;
-            border-radius: 6px;
-            background-color: transparent;
-            color: var(--label-color);
-            border: 1.5px solid var(--border-color);
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: none;
-            transition: all 0.2s;
-        }
-
-        .auth-tab:hover {
-            border-color: #FFD700;
-            color: var(--text-color);
-            transform: translateY(-2px);
-        }
-
-        .auth-tab.active {
-            background-color: #4a55a2;
-            color: white;
-            border-color: #4a55a2;
-        }
-
-        .auth-message {
-            font-size: 13px;
-            color: #d9534f;
-            margin-bottom: 12px;
-            font-weight: bold;
-            display: none;
-            width: 100%;
-            text-align: center;
-            animation: slideInLeft 0.3s ease-out;
-        }
-
-        .auth-message.success {
-            color: #5cb85c;
-        }
-
-        .profile-badge {
-            font-size: 14px;
-            font-weight: bold;
-            color: #FFD700;
-            background-color: rgba(255, 215, 0, 0.1);
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            width: 100%;
-            box-sizing: border-box;
-            margin-bottom: 10px;
-            text-align: center;
-            animation: scaleUp 0.4s ease-out;
-        }
-
-        select {
-            font-size: 16px;
-            padding: 10px 14px;
-            border-radius: 6px;
-            background-color: var(--select-bg);
-            color: var(--select-text);
-            border: 2px solid var(--select-border);
-            cursor: pointer;
-            outline: none;
-            width: 100%;
-            box-sizing: border-box;
-            transition: all 0.2s;
-        }
-
-        select:focus {
-            border-color: #FFD700;
-            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-        }
-
-        /* Buttons */
-        button {
-            font-size: 18px;
-            padding: 12px 24px;
-            border-radius: 6px;
-            background-color: #FFD700;
-            color: #111424;
-            border: none;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.2);
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        button:hover {
-            background-color: #FFA500;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(255, 165, 0, 0.4);
-        }
-
-        button:active {
-            transform: translateY(1px);
-        }
-
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .secondary-btn {
-            background-color: #4a55a2;
-            color: white;
-            box-shadow: 0 4px 10px rgba(74, 85, 162, 0.2);
-        }
-
-        .secondary-btn:hover {
-            background-color: #3b4380;
-            box-shadow: 0 6px 15px rgba(74, 85, 162, 0.4);
-        }
-
-        /* Admin badges and notifications */
-        .admin-badge {
-            background-color: #FF6B6B;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-left: 8px;
-            font-weight: bold;
-            animation: bounce 1s infinite;
-        }
-
-        .notification-item {
-            background-color: rgba(255, 107, 107, 0.1);
-            border-left: 4px solid #FF6B6B;
-            padding: 12px;
-            margin-bottom: 12px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 107, 107, 0.3);
-            animation: slideInLeft 0.4s ease-out;
-        }
-
-        .notification-item h3 {
-            margin: 0 0 8px 0;
-            color: #FFD700;
-            font-size: 16px;
-        }
-
-        .notification-item p {
-            margin: 0 0 10px 0;
-            color: var(--text-color);
-            font-size: 14px;
-        }
-
-        .notification-actions {
-            display: flex;
-            gap: 8px;
-            width: 100%;
-        }
-
-        .notification-actions button {
-            flex: 1;
-            font-size: 14px;
-            padding: 8px 12px;
-            margin: 0;
-        }
-
-        .accept-btn {
-            background-color: #5cb85c;
-        }
-
-        .accept-btn:hover {
-            background-color: #4cae4c;
-        }
-
-        .decline-btn {
-            background-color: #d9534f;
-        }
-
-        .decline-btn:hover {
-            background-color: #c9302c;
-        }
-
-        .no-notifications {
-            text-align: center;
-            color: #b3b9df;
-            padding: 20px;
-            font-size: 16px;
-        }
-
-        /* Game interface */
-        #stats {
-            font-size: 18px;
-            margin-bottom: 15px;
-            display: none;
-            width: 100%;
-            justify-content: center;
-            gap: 10px;
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        .stat-box {
-            background-color: var(--panel-bg);
-            padding: 10px 15px;
-            border-radius: 8px;
-            border: 2px solid var(--border-color);
-            font-weight: bold;
-            min-width: 90px;
-            color: var(--text-color);
-            transition: all 0.3s;
-            box-sizing: border-box;
-        }
-
-        canvas {
-            background-color: var(--panel-bg);
-            border: 4px solid var(--border-color);
-            border-radius: 12px;
-            cursor: pointer;
-            display: none;
-            margin: 0 auto;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            max-width: 100%;
-            height: auto;
-            transition: all 0.3s;
-            animation: scaleUp 0.4s ease-out;
-        }
-
-        /* Controls */
-        #controls {
-            display: none;
-            margin-top: 15px;
-            width: 100%;
-            max-width: 500px;
-            animation: slideInRight 0.4s ease-out;
-        }
-
-        .control-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .control-btn {
-            font-size: 14px;
-            padding: 10px 15px;
-            background-color: #4a55a2;
-            color: white;
-            border-radius: 6px;
-            box-shadow: none;
-            width: 100%;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-        }
-
-        .control-btn:hover {
-            background-color: #3b4380;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        #endGameBtn {
-            background-color: #d9534f;
-            color: white;
-            grid-column: span 2;
-            font-size: 16px;
-            padding: 12px;
-        }
-
-        #pauseGameBtn {
-            background-color: #f0ad4e;
-            color: white;
-            grid-column: span 2;
-            font-size: 16px;
-            padding: 12px;
-            margin-bottom: 10px;
-        }
-
-        #pauseGameBtn:hover {
-            background-color: #ec971f;
-        }
-
-        .menu-stat {
-            font-size: 16px;
-            color: #FFD700;
-            font-weight: bold;
-            background-color: rgba(255, 255, 255, 0.05);
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            width: 100%;
-            box-sizing: border-box;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        [data-theme="light"] .menu-stat {
-            background-color: rgba(74, 85, 162, 0.05);
-            border: 1px solid rgba(74, 85, 162, 0.2);
-            color: #4a55a2;
-        }
-
-        /* Modals */
-        #confirmModalOverlay, #infoModalOverlay, #timeInputModalOverlay, #twoFASetupOverlay, #twoFALoginOverlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #confirmModalOverlay.active, #infoModalOverlay.active, #timeInputModalOverlay.active, #twoFASetupOverlay.active, #twoFALoginOverlay.active {
-            display: flex;
-        }
-
-        #confirmModalBox, #infoModalBox, #timeInputModalBox, #twoFASetupBox, #twoFALoginBox {
-            background-color: var(--panel-bg);
-            border: 3px solid var(--border-color);
-            border-radius: 12px;
-            padding: 25px;
-            max-width: 340px;
-            width: 90%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            text-align: center;
-            animation: scaleUp 0.2s ease-out;
-        }
-
-        #confirmModalTitle, #timeInputModalTitle, #twoFASetupTitle {
-            margin: 0 0 12px 0;
-            color: #FFD700;
-            font-size: 20px;
-        }
-
-        #confirmModalMessage, #infoModalMessage, #timeInputModalMessage, #twoFASetupMessage {
-            margin: 0 0 20px 0;
-            color: var(--text-color);
-            font-size: 15px;
-            line-height: 1.5;
-        }
-
-        #confirmModalActions, #timeInputModalActions, #twoFASetupActions {
-            display: flex;
-            gap: 10px;
-        }
-
-        #confirmModalActions button, #timeInputModalActions button, #twoFASetupActions button {
-            flex: 1;
-            font-size: 15px;
-            padding: 10px;
-            margin: 0;
-        }
-
-        /* Sync indicator */
-        #syncIndicator {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--label-color);
-            margin: -5px 0 10px 0;
-            opacity: 0.85;
-        }
-
-        #syncIndicator.active {
-            display: flex;
-        }
-
-        .sync-spinner {
-            width: 14px;
-            height: 14px;
-            border: 2px solid var(--border-color);
-            border-top-color: #FFD700;
-            border-radius: 50%;
-            animation: syncSpin 0.8s linear infinite;
-        }
-
-        @keyframes syncSpin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Search */
-        #appSearchInput {
-            margin-bottom: 0;
-        }
-
-        #appSearchResults {
-            display: none;
-            position: absolute;
-            top: calc(100% + 4px);
-            left: 0;
-            right: 0;
-            background-color: var(--panel-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-            z-index: 50;
-            max-height: 280px;
-            overflow-y: auto;
-            text-align: left;
-        }
-
-        #appSearchResults.active {
-            display: block;
-        }
-
-        .search-result-item {
-            padding: 10px 14px;
-            cursor: pointer;
-            font-size: 14px;
-            color: var(--text-color);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background-color 0.2s;
-        }
-
-        .search-result-item:hover {
-            background-color: rgba(255, 215, 0, 0.12);
-        }
-
-        .search-result-item .search-result-section {
-            font-size: 11px;
-            color: var(--label-color);
-            font-weight: bold;
-        }
-
-        /* Leaderboard */
-        #leaderboardPanel {
-            display: none;
-            width: 100%;
-        }
-
-        .leaderboard-header-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 0 6px 8px 6px;
-            border-bottom: 2px solid var(--border-color);
-            margin-bottom: 10px;
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--label-color);
-            text-transform: uppercase;
-        }
-
-        .leaderboard-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 6px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            font-size: 14px;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        .lb-col-name {
-            flex: 2;
-            text-align: left;
-            color: var(--text-color);
-            font-weight: bold;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .lb-col-score {
-            flex: 1;
-            text-align: center;
-            color: #FFD700;
-            font-weight: bold;
-        }
-
-        .lb-col-status {
-            flex: 2;
-            text-align: center;
-            font-size: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .lb-col-action {
-            flex: 0 0 36px;
-            text-align: center;
-        }
-
-        .lb-status-ok {
-            color: #5cb85c;
-            font-weight: bold;
-        }
-
-        .lb-status-locked {
-            color: #d9534f;
-            font-weight: bold;
-        }
-
-        .lb-mini-btn {
-            font-size: 11px;
-            padding: 4px 8px;
-            margin: 0 2px;
-            width: auto;
-            box-shadow: none;
-            border-radius: 4px;
-            display: inline-block;
-            transition: all 0.2s;
-        }
-
-        .lb-mini-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .lb-mini-extend {
-            background-color: #5cb85c;
-            color: white;
-        }
-
-        .lb-mini-lock {
-            background-color: #d9534f;
-            color: white;
-        }
-
-        .lb-mini-unlock {
-            background-color: #5cb85c;
-            color: white;
-        }
-
-        .lb-delete-btn {
-            background: none;
-            border: none;
-            font-size: 18px;
-            padding: 4px;
-            width: auto;
-            box-shadow: none;
-            cursor: pointer;
-            line-height: 1;
-            transition: transform 0.2s;
-        }
-
-        .lb-delete-btn:hover {
-            transform: scale(1.15);
-        }
-
-        .lb-empty {
-            text-align: center;
-            color: var(--label-color);
-            padding: 20px;
-            font-size: 14px;
-        }
-
-        /* Missed games */
-        .missed-game-item {
-            background-color: rgba(255, 140, 66, 0.1);
-            border-left: 4px solid #FF8C42;
-            padding: 12px;
-            margin-bottom: 12px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 140, 66, 0.3);
-            text-align: left;
-            animation: slideInLeft 0.4s ease-out;
-        }
-
-        .missed-game-item h3 {
-            margin: 0 0 8px 0;
-            color: #FF8C42;
-            font-size: 16px;
-        }
-
-        .missed-game-item p {
-            margin: 0 0 6px 0;
-            color: var(--text-color);
-            font-size: 14px;
-        }
-
-        /* Admin dashboard */
-        #adminDashboardPanel {
-            display: none;
-            width: 100%;
-        }
-
-        .admin-search-box {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .admin-search-box input {
-            flex: 1;
-        }
-
-        .admin-search-box button {
-            flex: 0 0 100px;
-            font-size: 14px;
-            padding: 10px 14px;
-            margin: 0;
-        }
-
-        .admin-chart-container {
-            background-color: var(--panel-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-            height: 300px;
-        }
-
-        .admin-quick-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        .stat-card {
-            background-color: var(--panel-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .stat-card h4 {
-            margin: 0 0 8px 0;
-            color: #FFD700;
-            font-size: 14px;
-        }
-
-        .stat-card .stat-value {
-            font-size: 24px;
-            color: var(--text-color);
-            font-weight: bold;
-        }
-
-        /* 2FA Setup */
-        #twoFASetupBox {
-            max-width: 400px;
-        }
-
-        .qr-code-container {
-            margin: 20px 0;
-        }
-
-        .qr-code-container img {
-            width: 200px;
-            height: 200px;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-        }
-
-        .secret-key-display {
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px;
-            margin: 15px 0;
-            font-family: monospace;
-            word-break: break-all;
-            font-size: 12px;
-        }
-
-        .copy-secret-btn {
-            font-size: 12px;
-            padding: 6px 12px;
-            margin: 5px 0 15px 0;
-        }
-
-        /* Colorblind selector */
-        .colorblind-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin: 10px 0;
-        }
-
-        .colorblind-option {
-            font-size: 12px;
-            padding: 8px;
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            background-color: transparent;
-            color: var(--text-color);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .colorblind-option:hover {
-            border-color: #FFD700;
-            transform: scale(1.02);
-        }
-
-        .colorblind-option.active {
-            background-color: var(--border-color);
-            border-color: #FFD700;
-            color: #FFD700;
-        }
-
-        /* Misc */
-        #playTimeRemainingBadge.lb-time-warning {
-            color: #FF6B6B !important;
-            border-color: rgba(255, 107, 107, 0.4) !important;
-            background-color: rgba(255, 107, 107, 0.1) !important;
-        }
-
-        @keyframes badgePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
-
-        .admin-badge.new-notification {
-            animation: badgePulse 0.6s ease-in-out infinite;
-            background-color: #FF6B6B;
-        }
-    </style>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+ <title>Tic Tac Toe</title>
+ <script>
+// Load EmailJS with fallback — if CDN blocked (sandbox), stub it out
+(function() {
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js';
+  s.onerror = function() {
+    // CDN blocked — create a stub so emailjs.init/send don't throw
+    window.emailjs = {
+      init: function() {},
+      send: function() { return Promise.reject(new Error('EmailJS not available in this environment.')); }
+    };
+  };
+  document.head.appendChild(s);
+})();
+</script>
+ <script>
+ window.onerror = function(msg, src, line, col, err) {
+ console.error('JS ERROR:', msg, 'Line:', line, err);
+ };
+ window.addEventListener('unhandledrejection', function(e) {
+ console.error('PROMISE ERROR:', e.reason);
+ });
+</script>
+ <style>
+ * { box-sizing: border-box; margin: 0; padding: 0; }
+ body {
+ min-height: 100vh;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+ background: #1a1a2e;
+ font-family: 'Segoe UI', sans-serif;
+ color: #eee;
+ }
+
+ /* ── SCREENS ── */
+ .screen { width: 100%; max-width: 420px; padding: 1.5rem; display: none; }
+ .screen.active { display: block; }
+ #game-screen.active { display: flex; flex-direction: column; align-items: center; }
+
+ /* ── AUTH ── */
+ .auth-title { font-size: 2rem; letter-spacing: 4px; text-transform: uppercase; color: #e94560; text-align: center; margin-bottom: 0.3rem; }
+ .auth-subtitle { text-align: center; color: #555; font-size: 0.85rem; margin-bottom: 2rem; }
+ .auth-card { background: #16213e; border: 2px solid #0f3460; border-radius: 14px; padding: 1.8rem; }
+ .auth-tabs { display: flex; margin-bottom: 1.5rem; background: #0f3460; border-radius: 8px; padding: 4px; }
+ .auth-tab { flex: 1; padding: 0.5rem; border: none; background: transparent; color: #888; cursor: pointer; border-radius: 6px; font-size: 0.9rem; transition: all 0.2s; }
+ .auth-tab.active { background: #e94560; color: #fff; }
+ .field { margin-bottom: 1rem; }
+ .field label { display: block; font-size: 0.75rem; color: #a8dadc; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 1px; }
+ .field input { width: 100%; padding: 0.65rem 0.9rem; background: #1a1a2e; border: 2px solid #0f3460; border-radius: 8px; color: #eee; font-size: 0.95rem; transition: border-color 0.2s; outline: none; }
+ .field input:focus { border-color: #e94560; }
+ .auth-btn { width: 100%; padding: 0.75rem; background: #e94560; color: #fff; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; letter-spacing: 1px; transition: background 0.2s, transform 0.1s; margin-top: 0.5rem; }
+ .auth-btn:hover { background: #c73652; transform: scale(1.02); }
+ .auth-btn:disabled { background: #555; cursor: not-allowed; transform: none; }
+ .auth-msg { margin-top: 1rem; padding: 0.6rem 0.9rem; border-radius: 8px; font-size: 0.85rem; text-align: center; display: none; }
+ .auth-msg.error { background: #3d1a1a; color: #e94560; border: 1px solid #e9456044; display: block; }
+ .auth-msg.success { background: #1a3d26; color: #4caf77; border: 1px solid #4caf7744; display: block; }
+ .auth-msg.info { background: #1a2a3d; color: #a8dadc; border: 1px solid #a8dadc44; display: block; }
+
+ /* ── HOME ── */
+ #home-screen { text-align: center; }
+ .home-logo { font-size: 2.8rem; font-weight: 900; letter-spacing: 6px; text-transform: uppercase; color: #e94560; text-shadow: 0 0 40px #e9456055; margin-bottom: 0.2rem; }
+ .home-sub { color: #444; font-size: 0.8rem; letter-spacing: 3px; margin-bottom: 1.5rem; }
+
+ .profile-card {
+ background: #16213e;
+ border: 2px solid #0f3460;
+ border-radius: 14px;
+ padding: 1.2rem 1.5rem;
+ margin-bottom: 1.2rem;
+ display: flex;
+ align-items: center;
+ gap: 1rem;
+ }
+ .big-avatar {
+ width: 52px; height: 52px; border-radius: 50%;
+ background: #e94560; display: flex; align-items: center;
+ justify-content: center; font-size: 1.4rem; font-weight: bold;
+ color: #fff; flex-shrink: 0;
+ }
+ .profile-info { text-align: left; flex: 1; }
+ .profile-name { font-size: 1.1rem; font-weight: 700; color: #eee; }
+ .profile-email { font-size: 0.78rem; color: #555; margin-top: 2px; }
+
+ .stats-row {
+ display: flex;
+ gap: 0.6rem;
+ margin-bottom: 1.2rem;
+ }
+ .stat-box {
+ flex: 1;
+ background: #16213e;
+ border: 2px solid #0f3460;
+ border-radius: 12px;
+ padding: 0.8rem 0.5rem;
+ text-align: center;
+ }
+ .stat-box .stat-val { font-size: 1.6rem; font-weight: bold; color: #e94560; }
+ .stat-box .stat-val.blue { color: #a8dadc; }
+ .stat-box .stat-val.gold { color: #f4c430; }
+ .stat-box .stat-label { font-size: 0.7rem; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+ .menu-grid {
+ display: grid;
+ grid-template-columns: 1fr 1fr;
+ gap: 0.7rem;
+ margin-bottom: 0.7rem;
+ }
+ .menu-btn {
+ padding: 0.9rem 0.5rem;
+ border-radius: 12px;
+ border: 2px solid #0f3460;
+ background: #16213e;
+ color: #eee;
+ cursor: pointer;
+ font-size: 0.9rem;
+ font-weight: 600;
+ letter-spacing: 1px;
+ transition: all 0.18s;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ gap: 0.4rem;
+ }
+ .menu-btn .menu-icon { font-size: 1.5rem; }
+ .menu-btn:hover { border-color: #e94560; background: #1e1e3e; transform: scale(1.03); }
+ .menu-btn.primary { background: #e94560; border-color: #e94560; color: #fff; }
+ .menu-btn.primary:hover { background: #c73652; border-color: #c73652; }
+
+ .logout-link { background: none; border: none; color: #444; font-size: 0.8rem; cursor: pointer; margin-top: 0.5rem; text-decoration: underline; transition: color 0.2s; }
+ .logout-link:hover { color: #e94560; }
+
+ /* ── LEADERBOARD SCREEN ── */
+ .screen-title { font-size: 1.4rem; letter-spacing: 3px; text-transform: uppercase; color: #e94560; margin-bottom: 0.3rem; text-align: center; }
+ .screen-sub { font-size: 0.78rem; color: #555; text-align: center; margin-bottom: 1.5rem; letter-spacing: 1px; }
+ .back-btn { background: none; border: 1px solid #0f3460; color: #666; padding: 0.35rem 1rem; border-radius: 20px; cursor: pointer; font-size: 0.8rem; margin-bottom: 1.2rem; transition: all 0.2s; display: inline-block; }
+ .back-btn:hover { border-color: #a8dadc; color: #a8dadc; }
+
+ .lb-table { width: 100%; border-collapse: collapse; }
+ .lb-table th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: #555; padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid #0f3460; }
+ .lb-table td { padding: 0.65rem 0.6rem; font-size: 0.9rem; border-bottom: 1px solid #0f346033; }
+ .lb-table tr:last-child td { border-bottom: none; }
+ .lb-table tr.me td { background: #1e1e3e; color: #a8dadc; }
+ .lb-rank { font-weight: bold; color: #555; width: 32px; }
+ .lb-rank.gold { color: #f4c430; }
+ .lb-rank.silver { color: #aaa; }
+ .lb-rank.bronze { color: #cd7f32; }
+ .lb-wins { color: #e94560; font-weight: bold; }
+ .lb-streak { color: #f4c430; }
+ .lb-card { background: #16213e; border: 2px solid #0f3460; border-radius: 14px; padding: 1rem; }
+ .lb-empty { text-align: center; color: #444; padding: 2rem; font-size: 0.9rem; }
+
+ /* ── IMPORT/EXPORT SCREEN ── */
+ .ie-card { background: #16213e; border: 2px solid #0f3460; border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; }
+ .ie-card h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 2px; color: #a8dadc; margin-bottom: 1rem; }
+ .ie-btn { width: 100%; padding: 0.7rem; border-radius: 8px; border: 2px solid #0f3460; background: #1a1a2e; color: #eee; cursor: pointer; font-size: 0.9rem; letter-spacing: 1px; transition: all 0.2s; margin-bottom: 0.6rem; }
+ .ie-btn:hover { border-color: #e94560; color: #e94560; }
+ .ie-btn.green:hover { border-color: #4caf77; color: #4caf77; }
+ .ie-textarea { width: 100%; background: #1a1a2e; border: 2px solid #0f3460; border-radius: 8px; color: #a8dadc; padding: 0.7rem; font-size: 0.78rem; font-family: monospace; resize: vertical; min-height: 90px; outline: none; margin-bottom: 0.6rem; }
+ .ie-msg { padding: 0.5rem 0.8rem; border-radius: 8px; font-size: 0.82rem; text-align: center; margin-top: 0.4rem; display: none; }
+ .ie-msg.success { background: #1a3d26; color: #4caf77; border: 1px solid #4caf7744; display: block; }
+ .ie-msg.error { background: #3d1a1a; color: #e94560; border: 1px solid #e9456044; display: block; }
+
+ /* ── GAME ── */
+ .top-bar { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.3rem; width: 100%; max-width: 360px; justify-content: space-between; }
+ .user-badge { display: flex; align-items: center; gap: 0.5rem; background: #16213e; border: 1px solid #0f3460; border-radius: 20px; padding: 0.3rem 0.9rem 0.3rem 0.4rem; font-size: 0.85rem; color: #a8dadc; }
+ .avatar { width: 28px; height: 28px; border-radius: 50%; background: #e94560; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: #fff; flex-shrink: 0; }
+ .top-bar-btns { display: flex; gap: 0.4rem; }
+ .tb-btn { background: none; border: 1px solid #0f3460; color: #666; padding: 0.3rem 0.7rem; border-radius: 20px; cursor: pointer; font-size: 0.78rem; transition: all 0.2s; }
+ .tb-btn:hover { border-color: #a8dadc; color: #a8dadc; }
+
+ h1 { font-size: clamp(1.4rem, 6vw, 2.2rem); margin-bottom: 0.4rem; letter-spacing: 4px; text-transform: uppercase; color: #e94560; }
+ #status { font-size: clamp(0.9rem, 4vw, 1.1rem); margin-bottom: 0.5rem; min-height: 1.3em; color: #a8dadc; font-weight: 600; }
+
+ #board { display: grid; grid-template-columns: repeat(3, clamp(78px, 27vw, 110px)); grid-template-rows: repeat(3, clamp(78px, 27vw, 110px)); gap: clamp(4px, 1.5vw, 8px); }
+ .cell { background: #16213e; border: 2px solid #0f3460; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: clamp(1.8rem, 8vw, 3rem); font-weight: bold; cursor: pointer; transition: background 0.15s, transform 0.1s; user-select: none; }
+ .cell:hover:not(.taken) { background: #0f3460; transform: scale(1.05); }
+ .cell.x { color: #e94560; }
+ .cell.o { color: #a8dadc; }
+ .cell.win { background: #0f3460; border-color: #e94560; animation: pulse 0.5s ease-in-out; }
+ @keyframes pulse { 0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)} }
+
+ #scoreboard { display: flex; gap: clamp(0.4rem, 2.5vw, 1.5rem); margin: 0.5rem 0; }
+ .score-box { text-align: center; background: #16213e; border: 2px solid #0f3460; border-radius: 10px; padding: 0.35rem clamp(0.5rem, 2.5vw, 1.2rem); }
+ .score-box .label { color: #888; font-size: 0.75rem; text-transform: uppercase; }
+ .score-box .val { font-size: 1.5rem; font-weight: bold; }
+ .score-x .val { color: #e94560; }
+ .score-o .val { color: #a8dadc; }
+ .score-d .val { color: #888; }
+
+ #mode-toggle { margin-bottom: 0.3rem; display: flex; gap: 0.5rem; }
+ .mode-btn { padding: 0.4rem 1.1rem; border-radius: 20px; border: 2px solid #0f3460; background: #16213e; color: #aaa; cursor: pointer; font-size: 0.9rem; transition: all 0.15s; }
+ .mode-btn.active { background: #0f3460; color: #fff; border-color: #e94560; }
+
+ #reset { margin-top: 0.3rem; padding: 0.5rem 1.5rem; font-size: 1rem; background: #e94560; color: #fff; border: none; border-radius: 8px; cursor: pointer; letter-spacing: 1px; transition: background 0.2s, transform 0.1s; }
+ #reset:hover { background: #c73652; transform: scale(1.04); }
+ #reset-scores { margin-top: 0.5rem; padding: 0.6rem 2rem; font-size: 1rem; background: transparent; color: #888; border: 2px solid #0f3460; border-radius: 8px; cursor: pointer; letter-spacing: 1px; transition: all 0.2s; }
+ #reset-scores:hover { border-color: #e94560; color: #e94560; transform: scale(1.04); }
+
+ .streak-banner { font-size: 0.82rem; color: #f4c430; margin-bottom: 0.5rem; min-height: 1.2em; }
+
+ .loading-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+ @keyframes spin { to { transform: rotate(360deg); } }
+
+ .refresh-btn { background: none; border: 1px solid #0f3460; color: #555; padding: 0.3rem 0.8rem; border-radius: 20px; cursor: pointer; font-size: 0.78rem; transition: all 0.2s; float: right; margin-top: -2px; }
+ .refresh-btn:hover { border-color: #a8dadc; color: #a8dadc; }
+ .lb-filter-btn { padding: 0.35rem 0.8rem; border-radius: 20px; border: 2px solid #0f3460; background: #16213e; color: #666; cursor: pointer; font-size: 0.78rem; transition: all 0.15s; }
+ .lb-filter-btn.active { background: #0f3460; color: #fff; border-color: #e94560; }
+ .lb-filter-btn:hover { border-color: #a8dadc; color: #a8dadc; }
+ .lb-winrate { color: #4caf77; font-weight: bold; }
+ .lb-games { color: #a8dadc; }
+ #diff-toggle { display: none; }
+
+    /* TRANSITIONS */
+    .screen { transition: opacity 0.2s ease; }
+    .screen.fade-out { opacity: 0; pointer-events: none; }
+    .screen.fade-in  { animation: fadeInUp 0.25s ease forwards; }
+    @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    /* LIGHT THEME */
+    body.light { background: #f0f2f5; color: #1a1a2e; }
+    body.light .auth-card, body.light .profile-card, body.light .stat-box,
+    body.light .menu-btn, body.light .lb-card, body.light .ie-card,
+    body.light .score-box, body.light .cell, body.light .settings-card { background: #fff; border-color: #dde3ee; }
+    body.light .field input, body.light .ie-textarea, body.light #lb-search { background: #f5f7fa; border-color: #dde3ee; color: #1a1a2e; }
+    body.light .auth-tab { color: #aaa; }
+    body.light .auth-tabs { background: #dde3ee; }
+    body.light .cell:hover:not(.taken) { background: #eef0f5; }
+    body.light .mode-btn { background: #fff; border-color: #dde3ee; color: #888; }
+    body.light .mode-btn.active { background: #dde3ee; color: #1a1a2e; border-color: #e94560; }
+    body.light .tb-btn { border-color: #dde3ee; color: #aaa; }
+    body.light .score-box .label, body.light .home-sub, body.light .auth-subtitle,
+    body.light .screen-sub, body.light .logout-link { color: #aaa; }
+    body.light .lb-table th { color: #aaa; border-color: #dde3ee; }
+    body.light .lb-table td { border-color: #dde3ee44; }
+    body.light .lb-table tr.me td { background: #eef5ff; }
+    body.light #modal-overlay > div { background: #fff; border-color: #dde3ee; }
+    body.light .back-btn { border-color: #dde3ee; color: #aaa; }
+    body.light .profile-email { color: #aaa; }
+    body.light #theme-toggle { background: #fff; border-color: #dde3ee; color: #666; }
+
+    /* SETTINGS */
+    .settings-card { background: #16213e; border: 2px solid #0f3460; border-radius: 14px; padding: 1.5rem; margin-bottom: 1rem; }
+    .settings-card h3 { font-size: 0.82rem; text-transform: uppercase; letter-spacing: 2px; color: #a8dadc; margin-bottom: 1.2rem; }
+    body.light .settings-card h3 { color: #888; }
+    .danger-btn { width: 100%; padding: 0.7rem; border-radius: 8px; border: 2px solid #e94560; background: transparent; color: #e94560; cursor: pointer; font-size: 0.9rem; letter-spacing: 1px; transition: all 0.2s; }
+    .danger-btn:hover { background: #e94560; color: #fff; }
+
+    /* AVATAR COLOR PICKER */
+    .color-picker { display:flex; gap:0.5rem; margin-top:0.8rem; justify-content:center; flex-wrap:wrap; }
+    .color-dot { width:28px; height:28px; border-radius:50%; cursor:pointer; border:3px solid transparent; transition:all 0.15s; }
+    .color-dot:hover { transform:scale(1.15); }
+    .color-dot.selected { border-color:#fff; transform:scale(1.15); }
+
+    /* SHIMMER SKELETON */
+    .lb-skeleton { display:flex; align-items:center; gap:0.8rem; padding:0.65rem 0.6rem; border-bottom:1px solid #0f346033; }
+    .lb-skeleton:last-child { border-bottom:none; }
+    .shimmer { background: linear-gradient(90deg, #16213e 25%, #1e2a45 50%, #16213e 75%);
+               background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius:6px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    .sk-rank  { width:24px; height:24px; flex-shrink:0; }
+    .sk-name  { height:14px; flex:1; }
+    .sk-val   { width:36px; height:14px; }
+
+    /* TOAST */
+    #toast-container { position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%); z-index:999; display:flex; flex-direction:column; align-items:center; gap:0.5rem; pointer-events:none; }
+    .toast { background:#16213e; border:1px solid #0f3460; color:#eee; padding:0.55rem 1.2rem; border-radius:20px; font-size:0.82rem; letter-spacing:0.5px; opacity:0; transform:translateY(10px); transition:all 0.3s ease; pointer-events:none; white-space:nowrap; }
+    .toast.show { opacity:1; transform:translateY(0); }
+    .toast.success { border-color:#4caf77; color:#4caf77; }
+    .toast.error   { border-color:#e94560; color:#e94560; }
+    .toast.info    { border-color:#a8dadc; color:#a8dadc; }
+
+    /* RANK BADGE */
+    .rank-badge { display:inline-block; background:#0f3460; border:1px solid #e94560; color:#e94560; border-radius:20px; padding:0.2rem 0.7rem; font-size:0.75rem; font-weight:700; letter-spacing:1px; margin-top:0.4rem; }
+    body.light .rank-badge { background:#fff; }
+
+    /* MEMBER SINCE */
+    .member-since { font-size:0.72rem; color:#444; margin-top:2px; letter-spacing:0.5px; }
+    body.light .member-since { color:#bbb; }
+
+    /* ADMIN PANEL */
+    .admin-stat-row { display:flex; gap:0.6rem; margin-bottom:1rem; }
+    .admin-stat { flex:1; background:#16213e; border:2px solid #0f3460; border-radius:12px; padding:0.8rem 0.5rem; text-align:center; }
+    .admin-stat .a-val { font-size:1.5rem; font-weight:bold; color:#e94560; }
+    .admin-stat .a-label { font-size:0.68rem; color:#555; text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+    body.light .admin-stat { background:#fff; border-color:#dde3ee; }
+    .admin-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+    .admin-table th { font-size:0.68rem; text-transform:uppercase; letter-spacing:1px; color:#555; padding:0.4rem 0.5rem; text-align:left; border-bottom:1px solid #0f3460; }
+    .admin-table td { padding:0.55rem 0.5rem; border-bottom:1px solid #0f346022; vertical-align:middle; }
+    .admin-table tr:last-child td { border-bottom:none; }
+    .admin-table tr:hover td { background:#0f346022; }
+    body.light .admin-table th { border-color:#dde3ee; }
+    body.light .admin-table td { border-color:#dde3ee44; }
+    .admin-action-btn { background:none; border:1px solid #0f3460; color:#666; padding:0.2rem 0.55rem; border-radius:6px; cursor:pointer; font-size:0.72rem; transition:all 0.15s; margin-left:3px; }
+    .admin-action-btn:hover { border-color:#e94560; color:#e94560; }
+    .admin-action-btn.green:hover { border-color:#4caf77; color:#4caf77; }
+    .admin-search { width:100%; padding:0.55rem 0.8rem; background:#16213e; border:2px solid #0f3460; border-radius:8px; color:#eee; font-size:0.85rem; outline:none; margin-bottom:0.8rem; transition:border-color 0.2s; }
+    .admin-search:focus { border-color:#e94560; }
+    body.light .admin-search { background:#f5f7fa; border-color:#dde3ee; color:#1a1a2e; }
+
+    /* UNDO BTN */
+    #undo-btn { margin-top:0.5rem; padding:0.5rem 1.5rem; font-size:0.85rem; background:transparent; color:#888; border:2px solid #0f3460; border-radius:8px; cursor:pointer; letter-spacing:1px; transition:all 0.2s; }
+    #undo-btn:hover:not(:disabled) { border-color:#a8dadc; color:#a8dadc; }
+    #undo-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+    /* ADMIN EXPAND ROW */
+    .admin-expand { background:#0f1a2e; }
+    body.light .admin-expand { background:#f0f4ff; }
+    .admin-expand td { padding:0.8rem 1rem; }
+    .expand-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.5rem; margin-bottom:0.6rem; }
+    .expand-stat { background:#16213e; border:1px solid #0f3460; border-radius:8px; padding:0.5rem; text-align:center; }
+    body.light .expand-stat { background:#fff; border-color:#dde3ee; }
+    .expand-stat .ev { font-size:1.1rem; font-weight:bold; color:#e94560; }
+    .expand-stat .el { font-size:0.65rem; color:#555; text-transform:uppercase; letter-spacing:1px; }
+
+    /* BAN BADGE */
+    .ban-badge { display:inline-block; background:#3d1a1a; color:#e94560; border:1px solid #e9456055; border-radius:10px; padding:0.1rem 0.45rem; font-size:0.65rem; margin-left:4px; vertical-align:middle; }
+
+    /* ACHIEVEMENTS */
+    .achievements-section { margin-top:0.8rem; }
+    .achievements-title { font-size:0.72rem; text-transform:uppercase; letter-spacing:2px; color:#555; margin-bottom:0.5rem; }
+    .badges-grid { display:flex; flex-wrap:wrap; gap:0.4rem; }
+    .badge { background:#16213e; border:1px solid #0f3460; border-radius:8px; padding:0.3rem 0.6rem; font-size:0.72rem; color:#666; display:flex; align-items:center; gap:0.3rem; transition:all 0.2s; }
+    .badge.unlocked { border-color:#f4c430; color:#f4c430; background:#1e1a10; }
+    .badge.unlocked.rare { border-color:#a8dadc; color:#a8dadc; background:#101e20; }
+    .badge.unlocked.epic { border-color:#9b59b6; color:#9b59b6; background:#1a1025; }
+    body.light .badge { background:#f5f7fa; border-color:#dde3ee; color:#bbb; }
+    body.light .badge.unlocked { background:#fffbea; border-color:#f4c430; }
+
+    /* INBOX */
+    .inbox-dot { width:8px; height:8px; background:#e94560; border-radius:50%; display:inline-block; margin-left:4px; vertical-align:middle; }
+    .inbox-card { background:#16213e; border:2px solid #0f3460; border-radius:14px; padding:1.2rem; margin-bottom:1rem; }
+    body.light .inbox-card { background:#fff; border-color:#dde3ee; }
+    .inbox-msg { padding:0.7rem; background:#1a1a2e; border-radius:8px; margin-bottom:0.5rem; font-size:0.85rem; border-left:3px solid #e94560; }
+    .inbox-msg .msg-from { font-size:0.7rem; color:#555; margin-bottom:0.3rem; }
+    .inbox-msg .msg-text { color:#eee; }
+    body.light .inbox-msg { background:#f5f7fa; }
+    body.light .inbox-msg .msg-text { color:#1a1a2e; }
+    .inbox-empty { text-align:center; color:#444; padding:1rem; font-size:0.85rem; }
+
+    /* ADMIN MSG FORM */
+    .admin-msg-form { background:#16213e; border:2px solid #0f3460; border-radius:14px; padding:1.2rem; margin-bottom:1rem; }
+    body.light .admin-msg-form { background:#fff; border-color:#dde3ee; }
+    .admin-msg-form h3 { font-size:0.78rem; text-transform:uppercase; letter-spacing:2px; color:#a8dadc; margin-bottom:1rem; }
+
+    /* ADMIN NOTIFICATION SECTION */
+    .admin-notif-section { background:#16213e; border:2px solid #0f3460; border-radius:14px; padding:1.2rem; margin-bottom:1rem; }
+    body.light .admin-notif-section { background:#fff; border-color:#dde3ee; }
+    .admin-notif-section h3 { font-size:0.82rem; text-transform:uppercase; letter-spacing:2px; color:#a8dadc; margin-bottom:1rem; }
+    body.light .admin-notif-section h3 { color:#888; }
+    .admin-notif-list { background:#16213e; border:2px solid #0f3460; border-radius:12px; padding:1rem; max-height:200px; overflow-y:auto; margin-bottom:0.8rem; scrollbar-width:thin; scrollbar-color:#0f3460 transparent; }
+    body.light .admin-notif-list { background:#f5f7fa; border-color:#dde3ee; scrollbar-color:#dde3ee transparent; }
+    .admin-notif-list::-webkit-scrollbar { width:6px; }
+    .admin-notif-list::-webkit-scrollbar-track { background:transparent; }
+    .admin-notif-list::-webkit-scrollbar-thumb { background:#0f3460; border-radius:3px; }
+    body.light .admin-notif-list::-webkit-scrollbar-thumb { background:#dde3ee; }
+
+    @media (max-width: 400px) {
+      .screen { padding: 0.8rem; }
+      .stats-row { gap: 0.4rem; }
+      .stat-box { padding: 0.5rem 0.3rem; }
+      .stat-box .stat-val { font-size: 1.2rem; }
+      .menu-grid { gap: 0.5rem; }
+      .score-box .val { font-size: 1.2rem; }
+      #reset, #undo-btn, #reset-scores { padding: 0.45rem 1rem; font-size: 0.85rem; }
+      .streak-banner { font-size: 0.75rem; }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="wrapper">
-        <!-- Logo Section with Smart Fallback -->
-        <script>
-            function handleLogoError() {
-                const logoContainer = document.querySelector('.logo-container');
-                if (logoContainer) {
-                    logoContainer.innerHTML = '<div class="fallback-logo">⭐</div>';
-                }
-            }
-        </script>
-        <div class="logo-container">
-            <img id="logoImg" src="logo.png" alt="Game Logo" class="site-logo" onerror="handleLogoError()">
-        </div>
+<!-- AUTH -->
+<button id="theme-toggle" onclick="toggleTheme()">Light</button>
 
-        <h1>Star Collector</h1>
+<!-- SETTINGS -->
+<div id="settings-screen" class="screen">
+  <button class="back-btn" onclick="showScreen('home')">Back</button>
+  <div class="screen-title">Settings</div>
+  <div class="screen-sub">ACCOUNT &amp; PREFERENCES</div>
 
-        <div id="syncIndicator">
-            <div class="sync-spinner"></div>
-            <span>Syncing...</span>
-        </div>
+  <div class="settings-card">
+    <h3>Change Password</h3>
+    <div class="field"><label>Current Password</label><input type="password" id="cp-current" placeholder="Current password"></div>
+    <div class="field"><label>New Password</label><input type="password" id="cp-new" placeholder="At least 6 characters"></div>
+    <div class="field"><label>Confirm New Password</label><input type="password" id="cp-confirm" placeholder="Repeat new password"></div>
+    <button class="auth-btn" id="cp-btn" onclick="doChangePassword()">Update Password</button>
+    <div class="auth-msg" id="cp-msg"></div>
+  </div>
 
-        <div id="menu">
-            <!-- ==================== LOGIN / REGISTRATION ==================== -->
-            <div id="loginPanel">
-                <div class="auth-tabs">
-                    <button id="authLoginTab" class="auth-tab active">Log In</button>
-                    <button id="authSignUpTab" class="auth-tab">Sign Up</button>
-                </div>
+  <div class="settings-card">
+    <h3>Danger Zone</h3>
+    <p style="color:#666;font-size:0.82rem;margin-bottom:1rem;">Permanently deletes your account and all your stats from the database.</p>
+    <button class="danger-btn" onclick="doDeleteAccount()">Delete My Account</button>
+  </div>
+</div>
 
-                <div id="authMsg" class="auth-message"></div>
+<div id="auth-screen" class="screen active">
+ <div class="auth-title">Tic Tac Toe</div>
+ <div class="auth-subtitle">Sign in to track your scores</div>
+ <div class="auth-card">
+ <div class="auth-tabs">
+ <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Login</button>
+ <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+</div>
+ <div id="form-login">
+ <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="you@example.com"></div>
+ <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••"></div>
+ <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+ <input type="checkbox" id="remember-me" style="accent-color:#e94560;width:15px;height:15px;cursor:pointer;">
+ <label for="remember-me" style="font-size:0.82rem;color:#666;cursor:pointer;">Remember me</label>
+ </div>
+ <button class="auth-btn" id="login-btn" onclick="doLogin()">Login</button>
+ <div class="auth-msg" id="login-msg"></div>
+ <div style="text-align:right;margin-top:0.5rem;">
+  <button onclick="showForgotForm()" style="background:none;border:none;color:#666;font-size:0.8rem;cursor:pointer;text-decoration:underline;transition:color 0.2s;" onmouseover="this.style.color='#a8dadc'" onmouseout="this.style.color='#666'">Forgot password?</button>
+ </div>
+</div>
+ <div id="form-signup" style="display:none">
+ <div class="field"><label>Username</label><input type="text" id="signup-name" placeholder="coolplayer99"></div>
+ <div class="field"><label>Email</label><input type="email" id="signup-email" placeholder="you@example.com"></div>
+ <div class="field"><label>Password</label><input type="password" id="signup-password" placeholder="At least 6 characters"></div>
+ <button class="auth-btn" id="signup-btn" onclick="doSignup()">Create Account</button>
+ <div class="auth-msg" id="signup-msg"></div>
+</div>
 
-                <form id="authForm" onsubmit="event.preventDefault();">
-                    <div id="signupNameField" class="menu-element" style="align-items: flex-start; margin: 0 0 10px 0; display: none;">
-                        <label class="form-label" for="authName">Full Name:</label>
-                        <input id="authName" type="text" placeholder="Your full name..." required>
-                    </div>
+ <!-- FORGOT PASSWORD FORM -->
+ <div id="form-forgot" style="display:none;">
+  <p style="color:#a8dadc;font-size:0.82rem;margin-bottom:1rem;line-height:1.5;">Enter your email and we will send you a reset code.</p>
+  <div class="field"><label>Email</label><input type="email" id="forgot-email" placeholder="you@example.com"></div>
+  <button class="auth-btn" id="forgot-btn" onclick="doSendResetCode()">Send Reset Code</button>
+  <div class="auth-msg" id="forgot-msg"></div>
+  <div style="text-align:center;margin-top:0.8rem;">
+   <button onclick="hideForgotForm()" style="background:none;border:none;color:#555;font-size:0.8rem;cursor:pointer;text-decoration:underline;">Back to Login</button>
+  </div>
+ </div>
 
-                    <div class="menu-element" style="align-items: flex-start; margin: 0 0 10px 0;">
-                        <label class="form-label" for="authUsername">Email:</label>
-                        <input id="authUsername" type="text" placeholder="Enter your email..." required>
-                    </div>
+ <!-- RESET CODE FORM -->
+ <div id="form-reset" style="display:none;">
+  <p style="color:#a8dadc;font-size:0.82rem;margin-bottom:0.5rem;">Enter the 6-digit code sent to your email, then choose a new password.</p>
+  <div class="field"><label>Reset Code</label><input type="text" id="reset-code-input" placeholder="6-digit code" maxlength="6" style="letter-spacing:4px;font-size:1.1rem;text-align:center;"></div>
+  <div class="field"><label>New Password</label><input type="password" id="reset-new-pwd" placeholder="At least 6 characters"></div>
+  <div class="field"><label>Confirm Password</label><input type="password" id="reset-confirm-pwd" placeholder="Repeat new password"></div>
+  <button class="auth-btn" id="reset-btn" onclick="doResetPassword()">Reset Password</button>
+  <div class="auth-msg" id="reset-msg"></div>
+  <div style="text-align:center;margin-top:0.8rem;display:flex;justify-content:center;gap:1rem;">
+   <button id="resend-reset-btn" onclick="doResendResetCode()" style="background:none;border:none;color:#a8dadc;font-size:0.8rem;cursor:pointer;text-decoration:underline;">Resend code</button>
+   <button onclick="hideForgotForm()" style="background:none;border:none;color:#555;font-size:0.8rem;cursor:pointer;text-decoration:underline;">Back to Login</button>
+  </div>
+ </div>
 
-                    <div class="menu-element" style="align-items: flex-start; margin: 0 0 15px 0;">
-                        <label class="form-label" for="authPassword">Password:</label>
-                        <input id="authPassword" type="password" placeholder="🔑 Password" required>
-                        <div class="password-strength-meter" id="strengthMeter" style="display: none;">
-                            <div class="password-strength-bar" id="strengthBar"></div>
-                        </div>
-                        <div class="password-strength-text" id="strengthText" style="display: none;"></div>
-                    </div>
+</div>
+</div>
+ <div id="guest-btn-wrap" style="text-align:center; margin-top:1rem;">
+ <button onclick="playAsGuest()" style="background:none;border:none;color:#444;font-size:0.85rem;cursor:pointer;text-decoration:underline;letter-spacing:1px;transition:color 0.2s;" onmouseover="this.style.color='#a8dadc'" onmouseout="this.style.color='#444'">Continue as Guest</button>
+ </div>
+</div>
 
-                    <div class="menu-element" style="margin: 0 0 12px 0;">
-                        <a href="#" id="forgotPasswordLink" style="font-size: 13px; color: var(--label-color); text-decoration: underline; cursor: pointer;">Forgot your password?</a>
-                    </div>
+<!-- HOME -->
+<div id="home-screen" class="screen">
+ <div class="home-logo">Tic Tac Toe</div>
+ <div class="home-sub">CLASSIC · FAST · COMPETITIVE</div>
 
-                    <div class="menu-element" style="margin: 10px 0;">
-                        <button id="authSubmitBtn" type="button">Log In</button>
-                    </div>
+ <div class="profile-card" style="flex-direction:column;align-items:center;text-align:center;">
+ <div class="big-avatar" id="home-avatar" style="margin-bottom:0.6rem;width:60px;height:60px;font-size:1.6rem;"></div>
+ <div class="profile-name" id="home-username"></div>
+ <div class="profile-email" id="home-email"></div>
+ <div class="member-since" id="home-member-since"></div>
+ <div id="home-rank-badge" style="margin-bottom:0.6rem;"></div>
+ <div class="color-picker" id="color-picker">
+  <div class="color-dot" style="background:#e94560;" onclick="setAvatarColor('#e94560')"></div>
+  <div class="color-dot" style="background:#a8dadc;" onclick="setAvatarColor('#a8dadc')"></div>
+  <div class="color-dot" style="background:#f4c430;" onclick="setAvatarColor('#f4c430')"></div>
+  <div class="color-dot" style="background:#4caf77;" onclick="setAvatarColor('#4caf77')"></div>
+  <div class="color-dot" style="background:#9b59b6;" onclick="setAvatarColor('#9b59b6')"></div>
+  <div class="color-dot" style="background:#e67e22;" onclick="setAvatarColor('#e67e22')"></div>
+ </div>
+</div>
 
-                    <div class="menu-element" style="margin: 0;">
-                        <button id="guestPlayBtn" class="secondary-btn" type="button">🚀 Play as Guest</button>
-                    </div>
-                </form>
-            </div>
+ <div class="stats-row">
+ <div class="stat-box">
+ <div class="stat-val gold" id="home-highscore">0</div>
+ <div class="stat-label"> High Score</div>
+</div>
+ <div class="stat-box">
+ <div class="stat-val" id="home-wins">0</div>
+ <div class="stat-label">️ Total Wins</div>
+</div>
+ <div class="stat-box">
+ <div class="stat-val blue" id="home-streak">0</div>
+ <div class="stat-label"> Best Streak</div>
+</div>
+</div>
+ <div class="stats-row">
+ <div class="stat-box">
+ <div class="stat-val" id="home-games" style="color:#a8dadc;">0</div>
+ <div class="stat-label"> Games Played</div>
+</div>
+ <div class="stat-box">
+ <div class="stat-val" id="home-winrate" style="color:#4caf77;">0%</div>
+ <div class="stat-label"> Win Rate</div>
+</div>
+ <div class="stat-box">
+ <div class="stat-val" id="home-curstreak" style="color:#f4c430;">0</div>
+ <div class="stat-label"> Cur. Streak</div>
+</div>
+</div>
 
-            <!-- ==================== MAIN MENU ==================== -->
-            <div id="mainMenuPanel">
-                <div class="menu-element" style="margin: 0 0 15px 0; position: relative;">
-                    <input id="appSearchInput" type="text" placeholder="🔍 Search anything (e.g. theme mode)..." autocomplete="off">
-                    <div id="appSearchResults"></div>
-                </div>
-                <div class="profile-badge">
-                    🧑‍🚀 Pilot: <span id="activePilot">Guest</span>
-                </div>
-                <div id="playTimeRemainingBadge" class="menu-stat" style="display: none; margin-bottom: 15px; justify-content: center; gap: 8px;">
-                    <span id="playTimeRemainingText">⏱ -- left</span>
-                </div>
-                <div class="menu-element">
-                    <div class="menu-stat">
-                        <span>Daily Streak:</span>
-                        <span><span id="streakText">0</span> 🔥</span>
-                    </div>
-                </div>
-                <div class="menu-element">
-                    <div class="menu-stat">
-                        <span>High Score:</span>
-                        <span><span id="highScoreText">0</span> 🏆</span>
-                    </div>
-                </div>
-                <div class="menu-element">
-                    <button id="missedGamesBtn" class="secondary-btn" style="background-color: #FF8C42;">📋 Missed Games <span id="missedGamesCount" class="admin-badge" style="background-color: #d9534f;">0</span></button>
-                </div>
-                <div class="menu-element" id="adminNotificationsBtnContainer" style="display: none;">
-                    <button id="adminNotificationsBtn" class="secondary-btn">👮 Admin Notifications <span id="notificationCount" class="admin-badge">0</span></button>
-                </div>
-                <div class="menu-element" id="leaderboardBtnContainer" style="display: none;">
-                    <button id="leaderboardBtn" class="secondary-btn" style="background-color: #6f42c1;">🏆 Leaderboard</button>
-                </div>
-                <div class="menu-element" id="adminDashboardBtnContainer" style="display: none;">
-                    <button id="adminDashboardBtn" class="secondary-btn" style="background-color: #17a2b8;">📊 Admin Dashboard</button>
-                </div>
-                <div class="menu-element">
-                    <button id="startBtn">Start Game</button>
-                </div>
-                <div class="menu-element">
-                    <button id="settingsBtn" class="secondary-btn">⚙️ Game Settings</button>
-                </div>
-                <div class="menu-element">
-                    <button id="termsBtn" class="secondary-btn" style="background-color: #5c6bc0; font-size: 14px;">📋 Terms & Conditions</button>
-                </div>
-                <div class="menu-element">
-                    <button id="logoutBtn" class="secondary-btn" style="background-color: #d9534f;">🚪 Log Out</button>
-                </div>
-            </div>
+ <div class="achievements-section">
+ <div class="achievements-title">Achievements</div>
+ <div class="badges-grid" id="badges-grid"></div>
+ </div>
 
-            <!-- ==================== SETTINGS ==================== -->
-            <div id="settingsPanel">
-                <h2 style="margin-top: 0; color: #FFD700; font-size: 24px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-bottom: 20px;">Settings</h2>
-                
-                <div class="menu-element" style="align-items: flex-start; margin-bottom: 15px;">
-                    <label for="difficulty" style="font-size: 15px; font-weight: bold; margin-bottom: 6px; color: var(--label-color); text-align: left;">Difficulty Preset:</label>
-                    <select id="difficulty">
-                        <option value="easy">Easy (Relaxed)</option>
-                        <option value="medium" selected>Medium (Standard)</option>
-                        <option value="hard">Hard (Extreme)</option>
-                    </select>
-                </div>
+ <div class="menu-grid">
+ <button class="menu-btn primary" onclick="goPlay()">
+ <span class="menu-icon">▶</span> Play
+</button>
+ <button class="menu-btn" onclick="showScreen('leaderboard')">
+ <span class="menu-icon"></span> Leaderboard
+</button>
+ <button class="menu-btn" onclick="showScreen('importexport')">
+ <span class="menu-icon"></span> Data
+</button>
+ <button class="menu-btn" id="admin-menu-btn" onclick="showScreen('admin')" style="display:none;">
+ <span class="menu-icon"></span> Admin
+</button>
+ <button class="menu-btn" onclick="showScreen('settings')">
+ <span class="menu-icon"></span> Settings
+</button>
+ <button class="menu-btn" onclick="showScreen('inbox')">
+ <span class="menu-icon"></span> Inbox <span id="inbox-dot" class="inbox-dot" style="display:none;"></span>
+</button>
+ <button class="menu-btn" onclick="doLogout()">
+ <span class="menu-icon"></span> Logout
+</button>
+</div>
+</div>
 
-                <div class="menu-element" style="align-items: flex-start; margin-bottom: 15px;">
-                    <label for="themeMode" style="font-size: 15px; font-weight: bold; margin-bottom: 6px; color: var(--label-color); text-align: left;">Theme Mode:</label>
-                    <select id="themeMode">
-                        <option value="dark" selected>Dark Mode (Default)</option>
-                        <option value="light">Light Mode</option>
-                    </select>
-                </div>
+<!-- LEADERBOARD -->
+<div id="leaderboard-screen" class="screen">
+ <button class="back-btn" onclick="showScreen('home')">← Back</button>
+ <div class="screen-title"> Leaderboard</div>
+ <div class="screen-sub" style="display:flex;align-items:center;justify-content:center;gap:0.5rem;flex-wrap:wrap;">
+ ALL REGISTERED PLAYERS
+ <button class="refresh-btn" style="float:none;" onclick="loadLeaderboard()">↻ Refresh</button>
+</div>
 
-                <div class="menu-element" style="align-items: flex-start; margin-bottom: 15px;">
-                    <label for="colorblindMode" style="font-size: 15px; font-weight: bold; margin-bottom: 6px; color: var(--label-color); text-align: left;">Colorblind Mode:</label>
-                    <select id="colorblindMode">
-                        <option value="normal" selected>Normal Vision (Default)</option>
-                        <option value="deuteranopia">Deuteranopia (Red-Green)</option>
-                        <option value="protanopia">Protanopia (Red Colorblind)</option>
-                        <option value="tritanopia">Tritanopia (Blue-Yellow)</option>
-                    </select>
-                </div>
+ <input id="lb-search" type="text" placeholder=" Search player…" oninput="renderLeaderboard()"
+ style="width:100%;padding:0.6rem 0.9rem;background:#16213e;border:2px solid #0f3460;border-radius:8px;color:#eee;font-size:0.9rem;outline:none;margin-bottom:0.7rem;transition:border-color 0.2s;"
+ onfocus="this.style.borderColor='#e94560'" onblur="this.style.borderColor='#0f3460'">
 
-                <div class="menu-element" style="align-items: flex-start; margin-bottom: 15px;">
-                    <label for="timeFormatSelect" style="font-size: 15px; font-weight: bold; margin-bottom: 6px; color: var(--label-color); text-align: left;">Time Format:</label>
-                    <select id="timeFormatSelect">
-                        <option value="12">12-Hour (e.g. 3:23 PM)</option>
-                        <option value="24">24-Hour (e.g. 15:23)</option>
-                    </select>
-                </div>
+ <div style="display:flex;gap:0.5rem;margin-bottom:0.9rem;flex-wrap:wrap;">
+ <button class="lb-filter-btn active" id="f-wins" onclick="setFilter('wins')">️ Most Wins</button>
+ <button class="lb-filter-btn" id="f-streak" onclick="setFilter('streak')"> Best Streak</button>
+ <button class="lb-filter-btn" id="f-winrate" onclick="setFilter('winrate')"> Win Rate</button>
+ <button class="lb-filter-btn" id="f-games" onclick="setFilter('games')"> Games Played</button>
+</div>
 
-                <div class="menu-element" style="align-items: flex-start; margin-bottom: 15px;">
-                    <label for="fontSizeSelect" style="font-size: 15px; font-weight: bold; margin-bottom: 6px; color: var(--label-color); text-align: left;">Font Size:</label>
-                    <select id="fontSizeSelect">
-                        <option value="small">Small</option>
-                        <option value="normal" selected>Normal</option>
-                        <option value="large">Large</option>
-                    </select>
-                </div>
+ <div class="lb-card">
+ <table class="lb-table">
+ <thead>
+ <tr>
+ <th>#</th>
+ <th>Player</th>
+ <th id="lb-col1">Wins</th>
+ <th id="lb-col2">Streak</th>
+ <th id="lb-col3">Win%</th>
+</tr>
+</thead>
+ <tbody id="lb-body">
+ <tr><td colspan="5" class="lb-empty">Loading…</td></tr>
+</tbody>
+</table>
+</div>
+</div>
 
-                <div class="menu-element" style="margin-top: 25px;">
-                    <button id="backBtn" class="secondary-btn">⬅️ Back to Menu</button>
-                </div>
-            </div>
+<!-- IMPORT / EXPORT -->
+<div id="importexport-screen" class="screen">
+ <button class="back-btn" onclick="showScreen('home')">← Back</button>
+ <div class="screen-title"> Your Data</div>
+ <div class="screen-sub">EXPORT OR RESTORE YOUR SCORES</div>
 
-            <!-- ==================== TERMS & CONDITIONS ==================== -->
-            <div id="termsPanel">
-                <h2 style="margin-top: 0; color: #FFD700; font-size: 24px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-bottom: 20px;">📋 Terms & Conditions</h2>
-                
-                <div style="max-height: 400px; overflow-y: auto; padding: 0 10px; margin-bottom: 20px; text-align: left; font-size: 13px; line-height: 1.6; color: var(--text-color);">
-                    <h3 style="color: #FFD700; margin-top: 15px; margin-bottom: 8px;">1. Acceptance of Terms</h3>
-                    <p style="margin: 0 0 10px 0;">By accessing and using Star Collector, you accept and agree to be bound by the terms and provision of this agreement.</p>
+ <div class="ie-card">
+ <h3> Export Scores</h3>
+ <p style="color:#555;font-size:0.82rem;margin-bottom:1rem;">Download your stats as a JSON file you can keep as a backup.</p>
+ <button class="ie-btn" onclick="doExport()">⬇ Download stats.json</button>
+</div>
 
-                    <h3 style="color: #FFD700; margin-top: 15px; margin-bottom: 8px;">2. User Responsibilities</h3>
-                    <p style="margin: 0 0 10px 0;">You are responsible for maintaining the confidentiality of your account password and for all activities that occur under your account.</p>
+ <div class="ie-card">
+ <h3> Import / Restore Scores</h3>
+ <p style="color:#555;font-size:0.82rem;margin-bottom:0.8rem;">Paste your exported JSON below and hit Restore.</p>
+ <textarea class="ie-textarea" id="import-input" placeholder='{"wins":10,"losses":3,"draws":2,"highScore":7,"bestStreak":5}'></textarea>
+ <button class="ie-btn green" onclick="doImport()">↑ Restore Scores</button>
+ <div class="ie-msg" id="ie-msg"></div>
+</div>
+</div>
 
-                    <h3 style="color: #FFD700; margin-top: 15px; margin-bottom: 8px;">3. Play Time Limits</h3>
-                    <p style="margin: 0 0 10px 0;">Users are entitled to 30 minutes of active play time per day. After reaching your daily limit, you will not be able to play until the next day or until an admin grants additional time.</p>
+<!-- GAME -->
+<div id="game-screen" class="screen">
+ <div class="top-bar">
+ <div class="user-badge">
+ <div class="avatar" id="user-avatar"></div>
+ <span id="user-label"></span>
+</div>
+ <div class="top-bar-btns">
+ <button class="tb-btn" onclick="confirmGoHome()"> Home</button>
+ <button class="tb-btn" onclick="doLogout()">Logout</button>
+</div>
+</div>
 
-                    <h3 style="color: #FFD700; margin-top: 15px; margin-bottom: 8px;">4. Account Suspension</h3>
-                    <p style="margin: 0 0 10px 0;">We reserve the right to suspend or terminate your account if we determine that you have violated these terms or engaged in inappropriate behavior.</p>
+ <h1>Tic Tac Toe</h1>
 
-                    <h3 style="color: #FFD700; margin-top: 15px; margin-bottom: 8px;">5. Data Privacy</h3>
-                    <p style="margin: 0 0 10px 0;">Your account data, including email, name, high scores, and game statistics, are stored securely. We do not share your personal information with third parties without consent.</p>
+ <div id="mode-toggle">
+ <button class="mode-btn active" id="btn-2p" onclick="setMode('2p')">2 Players</button>
+ <button class="mode-btn" id="btn-ai" onclick="setMode('ai')">vs Computer</button>
+</div>
+ <div id="diff-toggle" style="display:none; gap:0.4rem; margin-bottom:0.6rem; flex-wrap:wrap; justify-content:center;">
+ <button class="mode-btn active" id="btn-easy" onclick="setDiff('easy')"> Easy</button>
+ <button class="mode-btn" id="btn-medium" onclick="setDiff('medium')"> Medium</button>
+ <button class="mode-btn" id="btn-hard" onclick="setDiff('hard')"> Hard</button>
+</div>
 
-                    <h3 style="color: #FFD700; margin-top: 15px; margin-bottom: 8px;">6. Security</h3>
-                    <p style="margin: 0 0 10px 0;">We implement security measures to protect your account. You are responsible for using strong passwords and enabling 2FA when available.</p>
+ <div class="streak-banner" id="streak-banner"></div>
+ <div id="status">X's turn</div>
 
-                    <h3 style="color: #FFD700; margin-top: 15px; margin-bottom: 8px;">7. Changes to Terms</h3>
-                    <p style="margin: 0 0 10px 0;">We reserve the right to modify these terms at any time. Your continued use of the service constitutes acceptance of new terms.</p>
-                </div>
+ <div id="board">
+ <div class="cell" onclick="handleClick(0)"></div>
+ <div class="cell" onclick="handleClick(1)"></div>
+ <div class="cell" onclick="handleClick(2)"></div>
+ <div class="cell" onclick="handleClick(3)"></div>
+ <div class="cell" onclick="handleClick(4)"></div>
+ <div class="cell" onclick="handleClick(5)"></div>
+ <div class="cell" onclick="handleClick(6)"></div>
+ <div class="cell" onclick="handleClick(7)"></div>
+ <div class="cell" onclick="handleClick(8)"></div>
+</div>
 
-                <div class="menu-element" style="margin-top: 20px;">
-                    <button id="backFromTermsBtn" class="secondary-btn">⬅️ Back to Menu</button>
-                </div>
-            </div>
+ <div id="scoreboard">
+ <div class="score-box score-x"><div class="label">X</div><div class="val" id="sx">0</div></div>
+ <div class="score-box score-d"><div class="label">Draws</div><div class="val" id="sd">0</div></div>
+ <div class="score-box score-o"><div class="label">O</div><div class="val" id="so">0</div></div>
+</div>
 
-            <!-- ==================== ADMIN NOTIFICATIONS ==================== -->
-            <div id="adminNotificationsPanel">
-                <h2 style="margin-top: 0; color: #FF6B6B; font-size: 24px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-bottom: 20px;">👮 Admin Notifications</h2>
-                
-                <div class="menu-element" style="margin-bottom: 15px;">
-                    <button id="adminRefreshBtn" class="secondary-btn" style="background-color: #5cb85c; font-size: 14px; padding: 8px 12px;">🔄 Check for New Requests</button>
-                </div>
+ <button id="reset" onclick="resetGame()">New Game</button>
+ <button id="undo-btn" onclick="doUndo()" disabled>Undo</button>
+ <button id="reset-scores" onclick="confirmResetScores()">Reset Scores</button>
+</div>
 
-                <div class="notification-actions" id="bulkActionsContainer" style="margin-bottom: 20px; display: none;">
-                    <button class="accept-btn" id="approveAllBtn">✅ Approve All</button>
-                    <button class="decline-btn" id="declineAllBtn">❌ Decline All</button>
-                </div>
+<script>
+// ══════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════
+const EMAILJS_PUBLIC_KEY = '_LVa7sKWxP1A093PB';
+const EMAILJS_SERVICE_ID = 'service_ax9b7hj';
+const EMAILJS_TEMPLATE_ID = 'template_5ysne0x';
+const JSONBIN_API_KEY = '$2a$10$x4RLzmXXNd8ylmjCBLdE8.gUy1Ue4WRfonZMe0StqRG4YFmY9tdBS';
+const JSONBIN_BIN_ID = '6a76baa1da38895dfec8e019';
 
-                <div id="notificationsList"></div>
-                
-                <div class="menu-element" style="margin-top: 20px;">
-                    <button id="backFromAdminBtn" class="secondary-btn">⬅️ Back to Menu</button>
-                </div>
-            </div>
+// emailjs.init called after script loads (may be stubbed in sandbox)
+try { if (window.emailjs) emailjs.init(EMAILJS_PUBLIC_KEY); } catch(e) {}
 
-            <!-- ==================== ADMIN DASHBOARD ==================== -->
-            <div id="adminDashboardPanel">
-                <h2 style="margin-top: 0; color: #17a2b8; font-size: 24px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-bottom: 20px;">📊 Admin Dashboard</h2>
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let currentUser = null;
 
-                <div class="menu-element" style="margin-bottom: 15px; position: relative;">
-                    <label style="font-size: 13px; margin-bottom: 8px; color: var(--label-color); text-align: left; width: 100%; display: block;">🔍 Search Player:</label>
-                    <div class="admin-search-box">
-                        <input id="playerSearchInput" type="text" placeholder="Search by name or email...">
-                        <button id="playerSearchBtn" class="secondary-btn" style="width: 80px; font-size: 12px; padding: 10px;">Search</button>
-                    </div>
-                </div>
+// ══════════════════════════════════════
+// JSONBIN
+// ══════════════════════════════════════
+const BIN_HEADERS = {
+ 'Content-Type': 'application/json',
+ 'X-Master-Key': JSONBIN_API_KEY,
+ 'X-Bin-Versioning': 'false'
+};
 
-                <div id="searchResultsList"></div>
+const DEFAULT_ACCOUNT = {
+ email: 'ibraheem.muhammad.ai@gmail.com',
+ username: 'Ibraheem',
+ passwordHash: '7e7f06bbd77a019539c2fd74db41e91e9b5adc36840098de58e2d0ba4d151e3e',
+ verified: true, createdAt: 1785571648622,
+ wins: 0, losses: 0, draws: 0, highScore: 0, bestStreak: 0, currentStreak: 0,
+ avatarColor: '#e94560'
+};
 
-                <div class="admin-quick-stats">
-                    <div class="stat-card">
-                        <h4>Total Players</h4>
-                        <div class="stat-value" id="totalPlayersCount">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Avg High Score</h4>
-                        <div class="stat-value" id="avgScoreCount">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Active Today</h4>
-                        <div class="stat-value" id="activeTodayCount">0</div>
-                    </div>
-                    <div class="stat-card">
-                        <h4>Locked Players</h4>
-                        <div class="stat-value" id="lockedPlayersCount">0</div>
-                    </div>
-                </div>
+// SANDBOX / OFFLINE DETECTION
+const IS_SANDBOX = (() => {
+ try {
+  const h = location.hostname;
+  return h.includes('claude.ai') || h.includes('anthropic') || h === 'null' || location.protocol === 'blob:';
+ } catch(e) { return false; }
+})();
 
-                <div class="admin-chart-container" id="activityChartContainer">
-                    <canvas id="activityChart"></canvas>
-                </div>
+const LOCAL_DB_KEY = 'ttt_local_db';
 
-                <div class="menu-element" style="margin: 15px 0;">
-                    <button id="exportLeaderboardBtn" class="secondary-btn" style="background-color: #28a745; font-size: 14px;">📥 Export Leaderboard (CSV)</button>
-                </div>
+function localDbRead() {
+ try {
+  const raw = localStorage.getItem(LOCAL_DB_KEY);
+  const data = raw ? JSON.parse(raw) : { users: [], notifications: [], signupRequests: [] };
+  if (!data.users.find(u => u.email === DEFAULT_ACCOUNT.email)) {
+   data.users.unshift(Object.assign({}, DEFAULT_ACCOUNT));
+  }
+  if (!data.notifications) data.notifications = [];
+  if (!data.signupRequests) data.signupRequests = [];
+  return data;
+ } catch(e) { return { users: [Object.assign({}, DEFAULT_ACCOUNT)], notifications: [], signupRequests: [] }; }
+}
+}
 
-                <div class="menu-element" style="margin-bottom: 15px;">
-                    <button id="backFromDashboardBtn" class="secondary-btn">⬅️ Back to Menu</button>
-                </div>
-            </div>
+function localDbWrite(data) {
+ try { localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(data)); } catch(e) {}
+}
 
-            <!-- More panels: leaderboard, missed games, etc... -->
-            <div id="leaderboardPanel">
-                <h2 style="margin-top: 0; color: #FFD700; font-size: 24px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-bottom: 20px;">🏆 Leaderboard</h2>
+async function dbRead() {
+ if (IS_SANDBOX) return localDbRead();
+ try {
+  const r = await fetch('https://api.jsonbin.io/v3/b/' + JSONBIN_BIN_ID + '/latest', { headers: BIN_HEADERS });
+  if (!r.ok) throw new Error('JSONBin read failed: ' + r.status);
+  const j = await r.json();
+  const data = j.record || { users: [], notifications: [] };
+  if (!data.users.find(u => u.email === DEFAULT_ACCOUNT.email)) {
+   data.users.unshift(Object.assign({}, DEFAULT_ACCOUNT));
+   await dbWrite(data).catch(() => {});
+  }
+  if (!data.notifications) data.notifications = [];
+  return data;
+ } catch(e) {
+  console.warn('JSONBin unreachable, using local fallback:', e.message);
+  return localDbRead();
+ }
+}
 
-                <div class="leaderboard-header-row">
-                    <span class="lb-col-name">Student Name</span>
-                    <span class="lb-col-score">High Score</span>
-                    <span class="lb-col-status">Status</span>
-                    <span class="lb-col-action"></span>
-                </div>
+async function dbWrite(data) {
+ if (IS_SANDBOX) { localDbWrite(data); return; }
+ try {
+  const r = await fetch('https://api.jsonbin.io/v3/b/' + JSONBIN_BIN_ID, {
+   method: 'PUT', headers: BIN_HEADERS, body: JSON.stringify(data)
+  });
+  if (!r.ok) throw new Error('JSONBin write failed: ' + r.status);
+ } catch(e) {
+  console.warn('JSONBin write failed, saving locally:', e.message);
+  localDbWrite(data);
+ }
+}
 
-                <div id="leaderboardList"></div>
+async function saveUserStats() {
+ if (!currentUser || currentUser.isGuest) return;
+ try {
+ const db = await dbRead();
+ const idx = db.users.findIndex(u => u.email === currentUser.email);
+ if (idx !== -1) db.users[idx] = currentUser;
+ await dbWrite(db);
+ showToast('Stats saved.', 'success', 1800);
+ } catch(e) { console.error('saveUserStats failed:', e); }
+}
 
-                <div class="menu-element" style="margin-top: 20px;">
-                    <button id="backFromLeaderboardBtn" class="secondary-btn">⬅️ Back to Menu</button>
-                </div>
-            </div>
+// ══════════════════════════════════════
+// HASH
+// ══════════════════════════════════════
+async function hashPassword(pwd) {
+ const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pwd));
+ return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
 
-            <div id="missedGamesPanel">
-                <h2 style="margin-top: 0; color: #FF8C42; font-size: 24px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; margin-bottom: 20px;">📋 Missed Games</h2>
-                
-                <div id="missedGamesList"></div>
-                
-                <div class="menu-element" style="margin-top: 20px;">
-                    <button id="backFromMissedBtn" class="secondary-btn">⬅️ Back to Menu</button>
-                </div>
-            </div>
+// ══════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════
+function showMsg(id, text, type) {
+ const el = document.getElementById(id);
+ el.textContent = text; el.className = 'auth-msg ' + type;
+}
+function clearMsg(id) {
+ const el = document.getElementById(id);
+ el.className = 'auth-msg'; el.textContent = '';
+}
+function setLoading(btnId, loading, label) {
+ const btn = document.getElementById(btnId);
+ btn.disabled = loading;
+ btn.innerHTML = loading ? `<span class="loading-spinner"></span> ${label}` : label;
+}
 
-            <div id="guestNamePanel">
-                <h2 style="margin-top: 20px; color: #FFD700; font-size: 28px; margin-bottom: 20px;">👤 Guest Information</h2>
-                <form id="guestNameForm" onsubmit="event.preventDefault();">
-                    <div class="menu-element" style="align-items: flex-start; margin: 0 0 20px 0;">
-                        <label class="form-label" for="guestNameInput">Your Name:</label>
-                        <input id="guestNameInput" type="text" placeholder="Enter your name..." required>
-                    </div>
+function showScreen(name) {
+ const cur = document.querySelector('.screen.active');
+ const next = document.getElementById(name + '-screen');
+ if (!next) return;
+ if (cur) {
+  cur.classList.add('fade-out');
+  setTimeout(() => {
+   cur.classList.remove('active','fade-out');
+   next.classList.add('active','fade-in');
+   setTimeout(() => next.classList.remove('fade-in'), 300);
+   if (name === 'leaderboard') loadLeaderboard();
+   if (name === 'home') refreshHome();
+   if (name === 'admin') loadAdminPanel();
+   if (name === 'inbox') loadInbox();
+  }, 200);
+ } else {
+  next.classList.add('active','fade-in');
+  setTimeout(() => next.classList.remove('fade-in'), 300);
+  if (name === 'leaderboard') loadLeaderboard();
+  if (name === 'home') refreshHome();
+  if (name === 'admin') loadAdminPanel();
+  if (name === 'inbox') loadInbox();
+ }
+}
 
-                    <div class="menu-element" style="margin: 10px 0;">
-                        <button id="guestSendRequestBtn" type="button" class="secondary-btn" style="background-color: #FFD700; color: #111424;">📤 Send Request to Admin</button>
-                    </div>
+function switchTab(tab) {
+ ['form-login','form-signup','form-forgot','form-reset'].forEach(id => {
+  document.getElementById(id).style.display = 'none';
+ });
+ document.getElementById('form-' + tab).style.display = '';
+ document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+ document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+ const guestWrap = document.getElementById('guest-btn-wrap');
+ if (guestWrap) guestWrap.style.display = tab === 'login' ? '' : 'none';
+ clearMsg('login-msg'); clearMsg('signup-msg'); clearMsg('forgot-msg'); clearMsg('reset-msg');
+}
 
-                    <div class="menu-element" style="margin: 0;">
-                        <button id="guestBackBtn" type="button" class="secondary-btn" style="background-color: #d9534f;">❌ Back to Login</button>
-                    </div>
-                </form>
-            </div>
+// ══════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════
+async function doSignup() {
+ const username = document.getElementById('signup-name').value.trim();
+ const email = document.getElementById('signup-email').value.trim().toLowerCase();
+ const password = document.getElementById('signup-password').value;
 
-            <div id="guestWaitingPanel">
-                <h2 style="margin-top: 20px; color: #FFD700; font-size: 28px; margin-bottom: 20px;">⏳ Awaiting Admin Approval</h2>
-                <p style="font-size: 14px; color: #FFD700; margin-bottom: 25px; font-weight: bold;">Status: <span id="guestApprovalStatus">Pending...</span></p>
+ if (!username || !email || !password) return showMsg('signup-msg', 'All fields are required.', 'error');
+ if (password.length < 6) return showMsg('signup-msg', 'Password must be at least 6 characters.', 'error');
+ if (!/^[^@]+@[^@]+\.[^@]+$/.test(email)) return showMsg('signup-msg', 'Enter a valid email address.', 'error');
 
-                <button id="guestRefreshBtn" class="secondary-btn" style="margin-bottom: 12px;">🔄 Check Status</button>
-                <button id="guestCancelBtn" class="secondary-btn" style="background-color: #d9534f;">❌ Cancel Request</button>
-            </div>
+ setLoading('signup-btn', true, 'Sending request…'); clearMsg('signup-msg');
+ try {
+ const db = await dbRead();
+ if (db.users.find(u => u.email === email)) {
+ showMsg('signup-msg', 'An account with that email already exists.', 'error');
+ return setLoading('signup-btn', false, 'Create Account');
+ }
+ if (db.users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
+ showMsg('signup-msg', 'That username is taken.', 'error');
+ return setLoading('signup-btn', false, 'Create Account');
+ }
 
-            <div id="resetRequestPanel">
-                <h2 style="margin-top: 20px; color: #FFD700; font-size: 28px; margin-bottom: 20px;">🔑 Password Reset</h2>
-                <form id="resetRequestForm" onsubmit="event.preventDefault();">
-                    <div class="menu-element" style="align-items: flex-start; margin: 0 0 20px 0;">
-                        <label class="form-label" for="resetEmailInput">Your Account Email:</label>
-                        <input id="resetEmailInput" type="text" placeholder="Enter the email on your account..." required>
-                    </div>
+ // Create signup request instead of user
+ if (!db.signupRequests) db.signupRequests = [];
+ const passwordHash = await hashPassword(password);
+ const request = {
+  id: 'req-' + Date.now(),
+  username, email, passwordHash,
+  requestedAt: Date.now(),
+  status: 'pending'
+ };
+ db.signupRequests.push(request);
 
-                    <div class="menu-element" style="margin: 10px 0;">
-                        <button id="resetRequestSendBtn" type="button" class="secondary-btn" style="background-color: #FFD700; color: #111424;">📤 Send Verification Code</button>
-                    </div>
+ // Add notification
+ if (!db.notifications) db.notifications = [];
+ db.notifications.unshift({
+  id: 'notif-' + Date.now(),
+  title: 'New Signup Request',
+  message: `${username} (${email}) wants to join`,
+  ts: Date.now(),
+  read: false,
+  type: 'info',
+  requestId: request.id
+ });
 
-                    <div class="menu-element" style="margin: 0;">
-                        <button id="resetRequestBackBtn" type="button" class="secondary-btn" style="background-color: #d9534f;">❌ Back to Login</button>
-                    </div>
-                </form>
-            </div>
+ await dbWrite(db);
+ showMsg('signup-msg', 'Signup request sent! Awaiting admin approval.', 'success');
+ setTimeout(() => { switchTab('login'); }, 2000);
+ } catch(err) {
+ showMsg('signup-msg', 'Signup failed: ' + (err.message || 'Unknown error'), 'error');
+ } finally {
+ setLoading('signup-btn', false, 'Create Account');
+ }
+}
+async function doLogin() {
+ const email = document.getElementById('login-email').value.trim().toLowerCase();
+ const password = document.getElementById('login-password').value;
+ if (!email || !password) return showMsg('login-msg', 'Enter your email and password.', 'error');
 
-            <div id="resetVerifyPanel">
-                <h2 style="margin-top: 20px; color: #FFD700; font-size: 28px; margin-bottom: 20px;">📨 Enter Code</h2>
+ setLoading('login-btn', true, 'Signing in…'); clearMsg('login-msg');
 
-                <form id="resetVerifyForm" onsubmit="event.preventDefault();">
-                    <div class="menu-element" style="align-items: flex-start; margin: 0 0 20px 0;">
-                        <label class="form-label" for="resetCodeInput">Verification Code:</label>
-                        <input id="resetCodeInput" type="text" placeholder="Enter the 6-digit code..." maxlength="6" required>
-                    </div>
+ // hardcoded default account — always works
+ const DEFAULT_EMAIL = 'ibraheem.muhammad.ai@gmail.com';
+ const DEFAULT_HASH  = '7e7f06bbd77a019539c2fd74db41e91e9b5adc36840098de58e2d0ba4d151e3e';
+ if (email === DEFAULT_EMAIL) {
+  const hash = await hashPassword(password);
+  if (hash !== DEFAULT_HASH) {
+   showMsg('login-msg', 'Incorrect password.', 'error');
+   setLoading('login-btn', false, 'Login'); return;
+  }
+  // try to load stats from db, fall back to defaults
+  let user = { ...DEFAULT_ACCOUNT };
+  try {
+   const db = await dbRead();
+   const found = db.users.find(u => u.email === DEFAULT_EMAIL);
+   if (found) user = found;
+  } catch(e) {}
+  currentUser = user;
+  if (document.getElementById('remember-me') && document.getElementById('remember-me').checked) saveSession(currentUser);
+  setLoading('login-btn', false, 'Login');
+  enterHome(); return;
+ }
 
-                    <div class="menu-element" style="margin: 10px 0;">
-                        <button id="resetVerifyConfirmBtn" type="button" class="secondary-btn" style="background-color: #FFD700; color: #111424;">✅ Verify Code</button>
-                    </div>
+ try {
+ const db = await dbRead();
+ const user = db.users.find(u => u.email === email);
+ if (!user) { showMsg('login-msg', 'No account found with that email.', 'error'); return; }
+ if (user.banned) { showMsg('login-msg', 'This account has been banned. Contact the admin.', 'error'); return; }
+ if (!user.verified) { showMsg('login-msg', 'Your account is awaiting admin approval.', 'error'); return; }
+ const hash = await hashPassword(password);
+ if (hash !== user.passwordHash) { showMsg('login-msg', 'Incorrect password.', 'error'); return; }
+ // ensure stats fields exist for old accounts
+ user.wins = user.wins || 0;
+ user.losses = user.losses || 0;
+ user.draws = user.draws || 0;
+ user.highScore = user.highScore || 0;
+ user.bestStreak = user.bestStreak || 0;
+ user.currentStreak = user.currentStreak || 0;
+ currentUser = user;
+ if (document.getElementById('remember-me') && document.getElementById('remember-me').checked) saveSession(currentUser);
+ enterHome();
+ } catch(err) {
+ showMsg('login-msg', 'Login failed: ' + (err.message || 'Unknown error'), 'error');
+ } finally {
+ setLoading('login-btn', false, 'Login');
+ }
+}
 
-                    <div class="menu-element" style="margin: 0 0 10px 0;">
-                        <button id="resetResendCodeBtn" type="button" class="secondary-btn">🔄 Resend Code</button>
-                    </div>
+function playAsGuest() {
+  currentUser = {
+    username: 'Guest',
+    email: '',
+    wins: 0, losses: 0, draws: 0,
+    highScore: 0, bestStreak: 0, currentStreak: 0,
+    isGuest: true
+  };
+  // skip home, go straight to game
+  document.getElementById('user-avatar').textContent = 'G';
+  document.getElementById('user-label').textContent  = 'Guest';
+  scores = {X:0,O:0,D:0};
+  mode = mode || '2p';
+  updateScores();
+  updateStreakBanner();
+  resetGame();
+  showScreen('game');
+}
 
-                    <div class="menu-element" style="margin: 0;">
-                        <button id="resetVerifyBackBtn" type="button" class="secondary-btn" style="background-color: #d9534f;">❌ Cancel</button>
-                    </div>
-                </form>
-            </div>
+function doLogout() {
+ if (currentUser && currentUser.isGuest) {
+ showModal('', 'Leave Guest Session?', 'Your scores will be lost since you are playing as a guest.', 'Yes, Exit', '#e94560', () => { currentUser = null; showScreen('auth'); });
+ return;
+ }
+ showModal(
+ '', 'Logout?',
+ 'Are you sure you want to log out? Your stats are saved.',
+ 'Yes, Logout', '#e94560',
+ () => { clearSession(); currentUser = null; showScreen('auth'); }
+ );
+}
 
-            <div id="resetNewPasswordPanel">
-                <h2 style="margin-top: 20px; color: #FFD700; font-size: 28px; margin-bottom: 20px;">🔒 New Password</h2>
+// ══════════════════════════════════════
+// HOME
+// ══════════════════════════════════════
+function enterHome() {
+ if (currentUser && currentUser.isGuest) { showScreen('game'); return; }
+ refreshHome();
+ showScreen('home');
+ // also set game top bar
+ document.getElementById('user-avatar').textContent = currentUser.username[0].toUpperCase();
+ document.getElementById('user-label').textContent = currentUser.username;
+ document.getElementById('user-avatar').style.background = currentUser.avatarColor || '#e94560';
+}
 
-                <form id="resetNewPasswordForm" onsubmit="event.preventDefault();">
-                    <div class="menu-element" style="align-items: flex-start; margin: 0 0 15px 0;">
-                        <label class="form-label" for="resetNewPasswordInput">New Password:</label>
-                        <input id="resetNewPasswordInput" type="password" placeholder="🔑 New password..." required>
-                    </div>
+function refreshHome() {
+ if (!currentUser) return;
+ const wins = currentUser.wins || 0;
+ const losses = currentUser.losses || 0;
+ const draws = currentUser.draws || 0;
+ const games = wins + losses + draws;
+ const winRate = games> 0 ? Math.round((wins / games) * 100) : 0;
+ document.getElementById('home-avatar').textContent = currentUser.username[0].toUpperCase();
+ document.getElementById('home-username').textContent = currentUser.username;
+ document.getElementById('home-email').textContent = currentUser.email;
+ document.getElementById('home-highscore').textContent = currentUser.highScore || 0;
+ document.getElementById('home-wins').textContent = wins;
+ document.getElementById('home-streak').textContent = currentUser.bestStreak || 0;
+ document.getElementById('home-games').textContent = games;
+ document.getElementById('home-winrate').textContent = winRate + '%';
+ document.getElementById('home-curstreak').textContent = currentUser.currentStreak || 0;
+ setTimeout(() => applyAvatarColor(currentUser.avatarColor || '#e94560'), 50);
+ const ms = document.getElementById('home-member-since');
+ if (ms) ms.textContent = getMemberSince(currentUser.createdAt);
+ document.getElementById('home-rank-badge').innerHTML = '';
+ loadUserRank();
+ renderAchievements(currentUser);
+ checkInboxDot();
+ const adminBtn = document.getElementById('admin-menu-btn');
+ if (adminBtn) adminBtn.style.display = currentUser.email === 'ibraheem.muhammad.ai@gmail.com' ? '' : 'none';
+}
 
-                    <div class="menu-element" style="align-items: flex-start; margin: 0 0 20px 0;">
-                        <label class="form-label" for="resetConfirmPasswordInput">Confirm New Password:</label>
-                        <input id="resetConfirmPasswordInput" type="password" placeholder="🔑 Confirm password..." required>
-                    </div>
+// ══════════════════════════════════════
+// LEADERBOARD
+// ══════════════════════════════════════
+let lbUsers = [];
+let lbFilter = 'wins';
 
-                    <div class="menu-element" style="margin: 10px 0;">
-                        <button id="resetSavePasswordBtn" type="button" class="secondary-btn" style="background-color: #5cb85c;">✅ Save New Password</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+function setFilter(f) {
+ lbFilter = f;
+ document.querySelectorAll('.lb-filter-btn').forEach(b => b.classList.remove('active'));
+ document.getElementById('f-' + f).classList.add('active');
+ // update column headers
+ const cols = { wins: ['Wins','Streak','Win%'], streak: ['Streak','Wins','Win%'], winrate: ['Win%','Wins','Games'], games: ['Games','Wins','Win%'] };
+ const [c1,c2,c3] = cols[f];
+ document.getElementById('lb-col1').textContent = c1;
+ document.getElementById('lb-col2').textContent = c2;
+ document.getElementById('lb-col3').textContent = c3;
+ renderLeaderboard();
+}
 
-        <!-- ==================== IN-GAME INTERFACE ==================== -->
-        <div id="stats">
-            <span class="stat-box">Score: <span id="scoreText">0</span></span>
-            <span class="stat-box">Time: <span id="timerText">00:00</span></span>
-            <span class="stat-box">Level: <span id="levelText">1</span></span>
-            <span class="stat-box" id="inGameLimitBox" style="display:none;">⏱ <span id="inGameLimitText">--</span></span>
-        </div>
-        
-        <canvas id="gameCanvas" width="500" height="400"></canvas>
+function renderLeaderboard() {
+ const search = (document.getElementById('lb-search').value || '').toLowerCase();
+ let users = lbUsers.filter(u => u.username.toLowerCase().includes(search));
 
-        <div id="controls">
-            <button id="pauseGameBtn" class="control-btn">⏸️ Pause Game (ESC)</button>
-            <div class="control-grid">
-                <button id="resetScoreBtn" class="control-btn">Reset Score</button>
-                <button id="resetLevelBtn" class="control-btn">Reset Level</button>
-                <button id="resetBothBtn" class="control-btn" style="grid-column: span 2;">Reset Score & Level</button>
-            </div>
-            <button id="saveExitBtn" class="control-btn" style="background-color: #5cb85c; margin-bottom: 10px;">💾 Save & Exit</button>
-            <button id="endGameBtn" class="control-btn">End Game</button>
-        </div>
+ const getSortVal = u => {
+ const wins = u.wins || 0, losses = u.losses || 0, draws = u.draws || 0;
+ const games = wins + losses + draws;
+ if (lbFilter === 'wins') return wins;
+ if (lbFilter === 'streak') return u.bestStreak || 0;
+ if (lbFilter === 'winrate') return games> 0 ? wins / games : 0;
+ if (lbFilter === 'games') return games;
+ return wins;
+ };
+
+ users = [...users].sort((a,b) => getSortVal(b) - getSortVal(a));
+
+ if (!users.length) {
+ document.getElementById('lb-body').innerHTML = '<tr><td colspan="5" class="lb-empty">No players found.</td></tr>';
+ return;
+ }
+
+ const rankClass = i => i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+ const rankIcon = i => i === 0 ? '' : i === 1 ? '' : i === 2 ? '' : (i + 1);
+
+ const getRow = (u) => {
+ const wins = u.wins || 0, losses = u.losses || 0, draws = u.draws || 0;
+ const games = wins + losses + draws;
+ const wr = games> 0 ? Math.round((wins/games)*100) + '%' : '0%';
+ if (lbFilter === 'wins') return [wins, (u.bestStreak||0)+' ', wr];
+ if (lbFilter === 'streak') return [(u.bestStreak||0)+' ', wins, wr];
+ if (lbFilter === 'winrate') return [wr, wins, games];
+ if (lbFilter === 'games') return [games, wins, wr];
+ return [wins, (u.bestStreak||0)+' ', wr];
+ };
+
+ const isAdmin = currentUser && currentUser.email === 'ibraheem.muhammad.ai@gmail.com';
+ document.getElementById('lb-body').innerHTML = users.map((u, i) => {
+ const isMe = currentUser && u.email === currentUser.email;
+ const [v1,v2,v3] = getRow(u);
+ const PROTECTED = ['ibraheem.muhammad.ai@gmail.com'];
+ const canDelete = isAdmin && !PROTECTED.includes(u.email) && !isMe;
+ const delBtn = canDelete ? `<button class="lb-del-btn" data-email="${u.email}" style="background:none;border:none;color:#e94560;cursor:pointer;font-size:0.75rem;margin-left:6px;opacity:0.5;font-weight:bold;vertical-align:middle;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5" title="Delete player">x</button>` : '';
+ return `<tr class="${isMe ? 'me' : ''}">
+ <td class="lb-rank ${rankClass(i)}">${rankIcon(i)}</td>
+ <td>${u.username}${isMe ? ' <span style="color:#555;font-size:0.7rem">(you)</span>' : ''}${delBtn}</td>
+ <td class="lb-wins">${v1}</td>
+ <td class="lb-streak">${v2}</td>
+ <td class="lb-winrate">${v3}</td>
+</tr>`;
+ }).join('');
+ // attach delete handlers via event delegation
+ document.getElementById('lb-body').querySelectorAll('.lb-del-btn').forEach(btn => {
+  btn.addEventListener('click', () => adminDeleteUser(btn.dataset.email));
+ });
+}
+
+async function loadLeaderboard() {
+ const skeletonRow = () => `<tr><td colspan="5"><div class="lb-skeleton">
+  <div class="shimmer sk-rank"></div>
+  <div class="shimmer sk-name"></div>
+  <div class="shimmer sk-val"></div>
+  <div class="shimmer sk-val"></div>
+  <div class="shimmer sk-val"></div>
+ </div></td></tr>`;
+ document.getElementById('lb-body').innerHTML = [1,2,3,4,5].map(skeletonRow).join('');
+ try {
+ const db = await dbRead();
+ lbUsers = db.users.filter(u => u.verified);
+ renderLeaderboard();
+ } catch(err) {
+ document.getElementById('lb-body').innerHTML = '<tr><td colspan="5" class="lb-empty">Failed to load.</td></tr>';
+ }
+}
+
+// ══════════════════════════════════════
+// IMPORT / EXPORT
+// ══════════════════════════════════════
+function doExport() {
+ const data = {
+ username: currentUser.username,
+ email: currentUser.email,
+ wins: currentUser.wins || 0,
+ losses: currentUser.losses || 0,
+ draws: currentUser.draws || 0,
+ highScore: currentUser.highScore || 0,
+ bestStreak: currentUser.bestStreak || 0,
+ exportedAt: new Date().toISOString()
+ };
+ const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+ const url = URL.createObjectURL(blob);
+ const a = document.createElement('a');
+ a.href = url; a.download = `tictactoe_${currentUser.username}_stats.json`;
+ a.click(); URL.revokeObjectURL(url);
+}
+
+async function doImport() {
+ const raw = document.getElementById('import-input').value.trim();
+ const msg = document.getElementById('ie-msg');
+ msg.className = 'ie-msg'; msg.textContent = '';
+
+ let parsed;
+ try { parsed = JSON.parse(raw); }
+ catch { msg.className = 'ie-msg error'; msg.textContent = 'Invalid JSON. Make sure you pasted the full exported file.'; return; }
+
+ if (parsed.email && parsed.email !== currentUser.email) {
+ msg.className = 'ie-msg error';
+ msg.textContent = 'This export belongs to a different account.'; return;
+ }
+
+ const fields = ['wins','losses','draws','highScore','bestStreak'];
+ fields.forEach(f => { if (typeof parsed[f] === 'number') currentUser[f] = parsed[f]; });
+ // currentStreak reset on import
+ currentUser.currentStreak = 0;
+
+ try {
+ await saveUserStats();
+ refreshHome();
+ msg.className = 'ie-msg success';
+ msg.textContent = ' Scores restored successfully!';
+ document.getElementById('import-input').value = '';
+ } catch {
+ msg.className = 'ie-msg error';
+ msg.textContent = 'Failed to save to database. Try again.';
+ }
+}
+
+// ══════════════════════════════════════
+// GAME
+// ══════════════════════════════════════
+const WINS = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+let board, current, gameOver, mode, scores;
+
+function goPlay() {
+ showScreen('game');
+ scores = { X: 0, O: 0, D: 0 };
+ mode = mode || '2p';
+ updateScores();
+ updateStreakBanner();
+ resetGame();
+}
+
+let difficulty = 'medium';
+
+function setMode(m) {
+ mode = m;
+ document.getElementById('btn-2p').classList.toggle('active', m === '2p');
+ document.getElementById('btn-ai').classList.toggle('active', m === 'ai');
+ const diffToggle = document.getElementById('diff-toggle');
+ diffToggle.style.display = m === 'ai' ? 'flex' : 'none';
+ resetGame();
+}
+
+function setDiff(d) {
+ difficulty = d;
+ ['easy','medium','hard'].forEach(x => document.getElementById('btn-'+x).classList.toggle('active', x === d));
+}
+
+function handleClick(i) {
+ if (gameOver || board[i]) return;
+ if (mode === 'ai' && current === 'O') return;
+ place(i);
+ if (mode === 'ai' && !gameOver) {
+  const btn = document.getElementById('undo-btn'); if (btn) btn.disabled = true;
+  setTimeout(aiMove, 350);
+ }
+}
+
+function place(i) {
+ enableUndo(board, current);
+ board[i] = current;
+ const line = getWin();
+ if (line) {
+ gameOver = true;
+ scores[current]++;
+ render(); highlight(line);
+ setStatus(`${current} wins! `);
+ updateScores();
+ if (current === 'X') handlePlayerWin();
+ else handlePlayerLoss();
+ const ub = document.getElementById('undo-btn'); if (ub) ub.disabled = true;
+ return;
+ }
+ if (board.every(Boolean)) {
+ gameOver = true; scores.D++;
+ render(); setStatus("It's a draw!");
+ updateScores();
+ handleDraw();
+ const ub2 = document.getElementById('undo-btn'); if (ub2) ub2.disabled = true;
+ return;
+ }
+ current = current === 'X' ? 'O' : 'X';
+ render();
+ setStatus(mode === 'ai' && current === 'O' ? 'Computer is thinking…' : `${current}'s turn`);
+}
+
+function handlePlayerWin() {
+ if (!currentUser) return;
+ currentUser.wins = (currentUser.wins || 0) + 1;
+ currentUser.currentStreak = (currentUser.currentStreak || 0) + 1;
+ if (currentUser.currentStreak> (currentUser.bestStreak || 0)) {
+ currentUser.bestStreak = currentUser.currentStreak;
+ }
+ if (currentUser.wins> (currentUser.highScore || 0)) {
+ currentUser.highScore = currentUser.wins;
+ }
+ updateStreakBanner();
+ checkNewAchievements(currentUser);
+ saveUserStats();
+}
+
+function handlePlayerLoss() {
+ if (!currentUser) return;
+ currentUser.losses = (currentUser.losses || 0) + 1;
+ currentUser.currentStreak = 0;
+ updateStreakBanner();
+ saveUserStats();
+}
+
+function handleDraw() {
+ if (!currentUser) return;
+ currentUser.draws = (currentUser.draws || 0) + 1;
+ saveUserStats();
+}
+
+function updateStreakBanner() {
+ const streak = currentUser ? (currentUser.currentStreak || 0) : 0;
+ const best = currentUser ? (currentUser.bestStreak || 0) : 0;
+ const el = document.getElementById('streak-banner');
+ if (streak>= 2) el.textContent = ` ${streak} win streak!`;
+ else if (best> 0) el.textContent = `Best streak: ${best} `;
+ else el.textContent = '';
+}
+
+function aiMove() { place(bestMove()); }
+
+function bestMove() {
+ const empty = board.map((v,i)=>v?null:i).filter(i=>i!==null);
+ if (difficulty === 'easy') {
+ // 70% random, 30% smart
+ if (Math.random() < 0.7) return empty[Math.floor(Math.random()*empty.length)];
+ }
+ if (difficulty === 'medium') {
+ // win if possible
+ for (let i=0;i<9;i++){if(!board[i]){board[i]='O';if(getWin()){board[i]=null;return i;}board[i]=null;}}
+ // 50% chance to block, else random
+ if (Math.random() < 0.5) {
+ for (let i=0;i<9;i++){if(!board[i]){board[i]='X';if(getWin()){board[i]=null;return i;}board[i]=null;}}
+ }
+ return empty[Math.floor(Math.random()*empty.length)];
+ }
+ // hard: win> block> center> corners> edges
+ for (let i=0;i<9;i++){if(!board[i]){board[i]='O';if(getWin()){board[i]=null;return i;}board[i]=null;}}
+ for (let i=0;i<9;i++){if(!board[i]){board[i]='X';if(getWin()){board[i]=null;return i;}board[i]=null;}}
+ return [4,0,2,6,8,1,3,5,7].find(i=>!board[i]);
+}
+
+function getWin() {
+ return WINS.find(([a,b,c]) => board[a] && board[a]===board[b] && board[a]===board[c]) || null;
+}
+
+function highlight(line) {
+ line.forEach(i => document.querySelectorAll('.cell')[i].classList.add('win'));
+}
+
+function render() {
+ document.querySelectorAll('.cell').forEach((el,i) => {
+ el.textContent = board[i] || '';
+ el.className = 'cell' + (board[i] ? ' '+board[i].toLowerCase()+' taken' : '');
+ });
+}
+
+function setStatus(msg) { document.getElementById('status').textContent = msg; }
+function updateScores() {
+ document.getElementById('sx').textContent = scores.X;
+ document.getElementById('so').textContent = scores.O;
+ document.getElementById('sd').textContent = scores.D;
+}
+function confirmResetScores() {
+ showModal(
+ '️', 'Reset Scores?',
+ 'This will clear X, O and Draw counts for this session. Your overall stats are not affected.',
+ 'Yes, Reset', '#e94560',
+ () => { scores = {X:0,O:0,D:0}; updateScores(); resetGame(); showToast('Session scores reset.', 'info'); }
+ );
+}
+function resetScores() { scores = {X:0,O:0,D:0}; updateScores(); resetGame(); }
+function resetGame() {
+ board = Array(9).fill(null); current = 'X'; gameOver = false; lastBoard = null; undoUsed = false;
+ render(); setStatus(`${current}'s turn`); updateScores();
+ const btn = document.getElementById('undo-btn'); if (btn) btn.disabled = true;
+}
+
+// ══════════════════════════════════════
+// CONFIRM GO HOME
+// ══════════════════════════════════════
+function confirmGoHome() {
+ showModal(
+ '', 'Go to Home?',
+ 'Your current session scores will be reset. Your overall stats are already saved.',
+ 'Yes, Go Home', '#0f3460',
+ () => { scores = {X:0,O:0,D:0}; updateScores(); showScreen('home'); }
+ );
+}
+
+// ══════════════════════════════════════
+// THEME
+// ══════════════════════════════════════
+function toggleTheme() {
+ const isLight = document.body.classList.toggle('light');
+ document.getElementById('theme-toggle').textContent = isLight ? 'Dark' : 'Light';
+ localStorage.setItem('ttt_theme', isLight ? 'light' : 'dark');
+}
+function loadTheme() {
+ const saved = localStorage.getItem('ttt_theme');
+ if (saved === 'light') {
+  document.body.classList.add('light');
+  document.getElementById('theme-toggle').textContent = 'Dark';
+ }
+}
+
+// REMEMBER ME / SESSION
+function saveSession(user) {
+ localStorage.setItem('ttt_session', JSON.stringify({ email: user.email, passwordHash: user.passwordHash }));
+}
+function clearSession() {
+ localStorage.removeItem('ttt_session');
+}
+async function tryAutoLogin() {
+ const raw = localStorage.getItem('ttt_session');
+ if (!raw) { showScreen('auth'); return; }
+ try {
+  const { email, passwordHash } = JSON.parse(raw);
+  const db   = await dbRead();
+  const user = db.users.find(u => u.email === email && u.passwordHash === passwordHash);
+  if (user) {
+   ['wins','losses','draws','highScore','bestStreak','currentStreak'].forEach(f => { user[f] = user[f] || 0; });
+   currentUser = user;
+   enterHome();
+  } else { showScreen('auth'); }
+ } catch(e) { console.log('Auto-login failed:', e); showScreen('auth'); }
+}
+
+// CHANGE PASSWORD
+async function doChangePassword() {
+ const cur     = document.getElementById('cp-current').value;
+ const newPwd  = document.getElementById('cp-new').value;
+ const confirm = document.getElementById('cp-confirm').value;
+ const msgEl   = document.getElementById('cp-msg');
+ msgEl.className = 'auth-msg'; msgEl.textContent = '';
+ if (!cur || !newPwd || !confirm) { msgEl.className='auth-msg error'; msgEl.textContent='All fields required.'; return; }
+ if (newPwd.length < 6) { msgEl.className='auth-msg error'; msgEl.textContent='New password must be at least 6 characters.'; return; }
+ if (newPwd !== confirm) { msgEl.className='auth-msg error'; msgEl.textContent='Passwords do not match.'; return; }
+ const btn = document.getElementById('cp-btn');
+ btn.disabled = true; btn.innerHTML = '<span class="loading-spinner"></span> Updating...';
+ try {
+  const curHash = await hashPassword(cur);
+  if (curHash !== currentUser.passwordHash) { msgEl.className='auth-msg error'; msgEl.textContent='Current password is incorrect.'; return; }
+  currentUser.passwordHash = await hashPassword(newPwd);
+  await saveUserStats();
+  if (localStorage.getItem('ttt_session')) saveSession(currentUser);
+  ['cp-current','cp-new','cp-confirm'].forEach(id => document.getElementById(id).value = '');
+  msgEl.className='auth-msg success'; msgEl.textContent='Password updated successfully!';
+ } catch(e) { msgEl.className='auth-msg error'; msgEl.textContent='Failed to update. Try again.'; }
+ finally { btn.disabled = false; btn.textContent = 'Update Password'; }
+}
+
+// DELETE ACCOUNT
+function doDeleteAccount() {
+ const PROTECTED = ['ibraheem.muhammad.ai@gmail.com'];
+ if (PROTECTED.includes(currentUser.email)) {
+  showModal('', 'Protected Account', 'This account cannot be deleted.', 'OK', '#0f3460', () => {});
+  document.getElementById('modal-cancel').style.display = 'none';
+  return;
+ }
+ showModal('', 'Delete Account?',
+  'This permanently removes your account and all stats. This cannot be undone.',
+  'Yes, Delete', '#e94560',
+  async () => {
+   try {
+    const db = await dbRead();
+    db.users = db.users.filter(u => u.email !== currentUser.email);
+    await dbWrite(db);
+    clearSession(); currentUser = null; showScreen('auth');
+   } catch(e) { alert('Failed to delete account. Try again.'); }
+  }
+ );
+}
+
+// AVATAR COLOR
+const AVATAR_COLORS = ['#e94560','#a8dadc','#f4c430','#4caf77','#9b59b6','#e67e22'];
+
+function setAvatarColor(color) {
+ if (!currentUser) return;
+ currentUser.avatarColor = color;
+ applyAvatarColor(color);
+ saveUserStats();
+}
+
+function applyAvatarColor(color) {
+ const col = color || '#e94560';
+ document.getElementById('home-avatar').style.background = col;
+ document.getElementById('user-avatar').style.background = col;
+ // update selected dot
+ document.querySelectorAll('.color-dot').forEach(d => {
+  d.classList.toggle('selected', d.style.background === col ||
+   d.style.backgroundColor === col);
+ });
+}
+
+// KEYBOARD SHORTCUTS
+document.addEventListener('keydown', function(e) {
+ // Escape closes modal
+ if (e.key === 'Escape') {
+  const overlay = document.getElementById('modal-overlay');
+  if (overlay.style.display === 'flex') { closeModal(); return; }
+ }
+ // Only active in game screen
+ if (!document.getElementById('game-screen').classList.contains('active')) return;
+ // R = restart
+ if (e.key === 'r' || e.key === 'R') { if (!gameOver) return; resetGame(); return; }
+ // 1-9 = board cells (numpad layout: 7=top-left, 9=top-right)
+ const numMap = { '7':0,'8':1,'9':2,'4':3,'5':4,'6':5,'1':6,'2':7,'3':8 };
+ // also support 1-9 in reading order
+ const readMap = { '1':0,'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'8':7,'9':8 };
+ if (e.shiftKey && readMap[e.key] !== undefined) {
+  handleClick(readMap[e.key]); return;
+ }
+ if (numMap[e.key] !== undefined) {
+  handleClick(numMap[e.key]);
+ }
+});
+
+// TOAST
+function showToast(msg, type='info', duration=2800) {
+ const container = document.getElementById('toast-container');
+ const toast = document.createElement('div');
+ toast.className = 'toast ' + type;
+ toast.textContent = msg;
+ container.appendChild(toast);
+ requestAnimationFrame(() => {
+  requestAnimationFrame(() => toast.classList.add('show'));
+ });
+ setTimeout(() => {
+  toast.classList.remove('show');
+  setTimeout(() => toast.remove(), 350);
+ }, duration);
+}
+
+// RANK BADGE + MEMBER SINCE
+async function loadUserRank() {
+ try {
+  const db = await dbRead();
+  const sorted = [...db.users].filter(u=>u.verified).sort((a,b)=>(b.wins||0)-(a.wins||0));
+  const rank = sorted.findIndex(u => u.email === currentUser.email) + 1;
+  const total = sorted.length;
+  const badgeEl = document.getElementById('home-rank-badge');
+  if (rank > 0 && badgeEl) {
+   badgeEl.innerHTML = `<span class="rank-badge">#${rank} of ${total} players</span>`;
+  }
+ } catch(e) {}
+}
+
+function getMemberSince(createdAt) {
+ if (!createdAt) return '';
+ const d = new Date(createdAt);
+ const month = d.toLocaleString('en-US', { month:'short' }).toLowerCase();
+ const year  = d.getFullYear();
+ return 'Member since ' + month + ' ' + year;
+}
+
+// ══════════════════════════════════════
+// ADMIN PANEL
+// ══════════════════════════════════════
+let adminUsers = [];
+let adminNotifCache = [];
+let lastNotifCheck = 0;
+const NOTIF_THROTTLE = 3000;
+
+async function loadAdminPanel() {
+ document.getElementById('admin-tbody').innerHTML = '<tr><td colspan="5" class="lb-empty">Loading...</td></tr>';
+ try {
+  const db = await dbRead();
+  adminUsers = db.users.filter(u => u.verified);
+  // stats
+  const totalGames = adminUsers.reduce((s,u) => s + (u.wins||0) + (u.losses||0) + (u.draws||0), 0);
+  const totalWins  = adminUsers.reduce((s,u) => s + (u.wins||0), 0);
+  document.getElementById('adm-users').textContent = adminUsers.length;
+  document.getElementById('adm-games').textContent = totalGames;
+  document.getElementById('adm-wins').textContent  = totalWins;
+  renderAdminTable();
+
+loadSignupRequests();  // ← ADD THIS LINE
+  // Auto-check notifications
+  if (currentUser && currentUser.email === 'ibraheem.muhammad.ai@gmail.com') {
+   setTimeout(() => checkAdminNotifications(true), 500);
+  }
+ } catch(e) {
+  document.getElementById('admin-tbody').innerHTML = '<tr><td colspan="5" class="lb-empty">Failed to load.</td></tr>';
+ }
+}
+
+function renderAdminTable() {
+ const search = (document.getElementById('admin-search').value || '').toLowerCase();
+ const users = adminUsers.filter(u => u.username.toLowerCase().includes(search) || u.email.toLowerCase().includes(search));
+ const PROTECTED = ['ibraheem.muhammad.ai@gmail.com'];
+
+ if (!users.length) {
+  document.getElementById('admin-tbody').innerHTML = '<tr><td colspan="6" class="lb-empty">No players found.</td></tr>';
+  return;
+ }
+
+ document.getElementById('admin-tbody').innerHTML = users.map(u => {
+  const isProtected = PROTECTED.includes(u.email);
+  const isBanned = !!u.banned;
+  const banLabel = isBanned ? 'Unban' : 'Ban';
+  const delBtn   = isProtected ? '' : '<button class="admin-action-btn adm-del" data-email="'+u.email+'" title="Delete account">Del</button>';
+  const banBtn   = isProtected ? '' : '<button class="admin-action-btn adm-ban" data-email="'+u.email+'" title="'+banLabel+' user">'+banLabel+'</button>';
+  const resetBtn = '<button class="admin-action-btn green adm-reset" data-email="'+u.email+'" title="Reset stats">Reset</button>';
+  const banBadge = isBanned ? '<span class="ban-badge">banned</span>' : '';
+  const statusDot = isBanned
+   ? '<span style="color:#e94560;font-size:0.72rem;">Banned</span>'
+   : '<span style="color:#4caf77;font-size:0.72rem;">Active</span>';
+  return '<tr style="cursor:pointer;" class="adm-row" data-email="'+u.email+'">'
+   + '<td><strong>'+u.username+'</strong>'+banBadge+'<br><span style="color:#555;font-size:0.7rem;">'+u.email+'</span></td>'
+   + '<td style="color:#e94560;">'+(u.wins||0)+'</td>'
+   + '<td style="color:#888;">'+(u.losses||0)+'</td>'
+   + '<td style="color:#a8dadc;">'+(u.draws||0)+'</td>'
+   + '<td>'+statusDot+'</td>'
+   + '<td>'+resetBtn+banBtn+delBtn+'</td>'
+   + '</tr>';
+ }).join('');
+
+ // attach handlers
+ document.querySelectorAll('.adm-del').forEach(btn => {
+  btn.addEventListener('click', e => { e.stopPropagation(); adminDeleteUser(btn.dataset.email); });
+ });
+ document.querySelectorAll('.adm-reset').forEach(btn => {
+  btn.addEventListener('click', e => { e.stopPropagation(); adminResetStats(btn.dataset.email); });
+ });
+ document.querySelectorAll('.adm-ban').forEach(btn => {
+  btn.addEventListener('click', e => { e.stopPropagation(); adminBanUser(btn.dataset.email); });
+ });
+ document.querySelectorAll('.adm-row').forEach(row => {
+  row.addEventListener('click', () => toggleExpand(row.dataset.email));
+ });
+}
+
+async function adminResetStats(email) {
+ const PROTECTED = ['ibraheem.muhammad.ai@gmail.com'];
+ const user = adminUsers.find(u => u.email === email);
+ if (!user) return;
+ showModal('', `Reset ${user.username}?`,
+  'This will clear all their wins, losses, draws and streaks. Cannot be undone.',
+  'Yes, Reset', '#e94560',
+  async () => {
+   try {
+    const db = await dbRead();
+    const idx = db.users.findIndex(u => u.email === email);
+    if (idx !== -1) {
+     db.users[idx].wins = 0; db.users[idx].losses = 0; db.users[idx].draws = 0;
+     db.users[idx].highScore = 0; db.users[idx].bestStreak = 0; db.users[idx].currentStreak = 0;
+    }
+    await dbWrite(db);
+    // update local
+    const local = adminUsers.find(u => u.email === email);
+    if (local) { local.wins=0; local.losses=0; local.draws=0; local.highScore=0; local.bestStreak=0; local.currentStreak=0; }
+    renderAdminTable();
+    showToast(user.username + "'s stats reset.", 'success');
+   } catch(e) { showToast('Failed to reset stats.', 'error'); }
+  }
+ );
+}
+
+// SIGNUP REQUESTS
+let signupRequests = [];
+
+async function loadSignupRequests() {
+ try {
+  const db = await dbRead();
+  signupRequests = db.signupRequests || [];
+  renderSignupRequests();
+ } catch(e) {
+  console.error('Failed to load signup requests:', e);
+ }
+}
+
+function renderSignupRequests() {
+ const container = document.getElementById('signup-requests-list');
+ if (!container) return;
+ 
+ if (!signupRequests.length) {
+  container.innerHTML = '<div style="color:#555;font-size:0.82rem;text-align:center;padding:1.5rem;">No pending signup requests</div>';
+  return;
+ }
+ 
+ container.innerHTML = signupRequests.map(req => `
+  <div style="background:#16213e;border:1px solid #0f3460;border-radius:10px;padding:1rem;margin-bottom:0.8rem;">
+   <div style="color:#a8dadc;font-weight:600;margin-bottom:0.5rem;">📝 ${req.username}</div>
+   <div style="color:#666;font-size:0.8rem;margin-bottom:0.8rem;">Email: <span style="color:#eee;font-family:monospace;">${req.email}</span></div>
+   <div style="display:flex;gap:0.5rem;">
+    <button class="auth-btn" style="flex:1;padding:0.5rem;font-size:0.85rem;background:#4caf77;" onclick="acceptSignup('${req.id}')">✓ Accept</button>
+    <button class="auth-btn" style="flex:1;padding:0.5rem;font-size:0.85rem;background:#e94560;" onclick="declineSignup('${req.id}')">✕ Decline</button>
+   </div>
+  </div>
+ `).join('');
+}
+
+async function acceptSignup(requestId) {
+ const req = signupRequests.find(r => r.id === requestId);
+ if (!req) return;
+ 
+ try {
+  const db = await dbRead();
+  
+  // Create verified user
+  const newUser = {
+   email: req.email,
+   username: req.username,
+   passwordHash: req.passwordHash,
+   verified: true,
+   createdAt: Date.now(),
+   wins: 0, losses: 0, draws: 0,
+   highScore: 0, bestStreak: 0, currentStreak: 0,
+   avatarColor: '#e94560'
+  };
+  
+  db.users.push(newUser);
+  db.signupRequests = db.signupRequests.filter(r => r.id !== requestId);
+  
+  // Add notification to the new user
+  if (!db.notifications) db.notifications = [];
+  db.notifications.unshift({
+   id: 'notif-' + Date.now(),
+   title: 'Account Approved!',
+   message: 'Your signup has been approved. You can now login.',
+   ts: Date.now(),
+   read: false,
+   type: 'success'
+  });
+  
+  await dbWrite(db);
+  signupRequests = signupRequests.filter(r => r.id !== requestId);
+  renderSignupRequests();
+  showToast(req.username + ' approved!', 'success');
+ } catch(e) {
+  showToast('Failed to accept signup.', 'error');
+ }
+}
+
+async function declineSignup(requestId) {
+ const req = signupRequests.find(r => r.id === requestId);
+ if (!req) return;
+ 
+ showModal('', 'Decline Signup?', `Are you sure you want to decline ${req.username}'s signup request?`, 'Yes, Decline', '#e94560', async () => {
+  try {
+   const db = await dbRead();
+   db.signupRequests = db.signupRequests.filter(r => r.id !== requestId);
+   await dbWrite(db);
+   signupRequests = signupRequests.filter(r => r.id !== requestId);
+   renderSignupRequests();
+   showToast(req.username + ' declined.', 'info');
+  } catch(e) {
+   showToast('Failed to decline signup.', 'error');
+  }
+ });
+}
+
+// ACHIEVEMENTS
+const ACHIEVEMENTS = [
+ { id:'first_win',   label:'First Win',      desc:'Win your first game',          check: u => (u.wins||0) >= 1,   tier:'unlocked' },
+ { id:'win5',        label:'5 Wins',          desc:'Win 5 games',                  check: u => (u.wins||0) >= 5,   tier:'unlocked' },
+ { id:'win10',       label:'10 Wins',         desc:'Win 10 games',                 check: u => (u.wins||0) >= 10,  tier:'unlocked' },
+ { id:'win25',       label:'25 Wins',         desc:'Win 25 games',                 check: u => (u.wins||0) >= 25,  tier:'rare' },
+ { id:'win50',       label:'50 Wins',         desc:'Win 50 games',                 check: u => (u.wins||0) >= 50,  tier:'epic' },
+ { id:'streak3',     label:'3 Streak',        desc:'Win 3 in a row',               check: u => (u.bestStreak||0) >= 3,  tier:'unlocked' },
+ { id:'streak5',     label:'5 Streak',        desc:'Win 5 in a row',               check: u => (u.bestStreak||0) >= 5,  tier:'rare' },
+ { id:'streak10',    label:'10 Streak',       desc:'Win 10 in a row',              check: u => (u.bestStreak||0) >= 10, tier:'epic' },
+ { id:'played10',    label:'Veteran',         desc:'Play 10 games',                check: u => ((u.wins||0)+(u.losses||0)+(u.draws||0)) >= 10, tier:'unlocked' },
+ { id:'played50',    label:'Dedicated',       desc:'Play 50 games',                check: u => ((u.wins||0)+(u.losses||0)+(u.draws||0)) >= 50, tier:'rare' },
+ { id:'no_loss',     label:'Clean Sheet',     desc:'Win 5 games with no losses',   check: u => (u.wins||0) >= 5 && (u.losses||0) === 0, tier:'rare' },
+];
+
+function renderAchievements(user) {
+ const grid = document.getElementById('badges-grid');
+ if (!grid) return;
+ grid.innerHTML = ACHIEVEMENTS.map(a => {
+  const earned = a.check(user);
+  return '<div class="badge' + (earned ? ' unlocked ' + a.tier : '') + '" title="' + a.desc + '">'
+   + (earned ? '' : '') + a.label + '</div>';
+ }).join('');
+}
+
+function checkNewAchievements(user) {
+ const prev = JSON.parse(localStorage.getItem('ttt_achievements_' + user.email) || '[]');
+ const now  = ACHIEVEMENTS.filter(a => a.check(user)).map(a => a.id);
+ const newOnes = now.filter(id => !prev.includes(id));
+ if (newOnes.length) {
+  localStorage.setItem('ttt_achievements_' + user.email, JSON.stringify(now));
+  newOnes.forEach(id => {
+   const a = ACHIEVEMENTS.find(x => x.id === id);
+   if (a) setTimeout(() => showToast('Achievement: ' + a.label + '!', 'success', 3500), 800);
+  });
+ } else {
+  localStorage.setItem('ttt_achievements_' + user.email, JSON.stringify(now));
+ }
+}
+
+// INBOX
+function getInboxKey(email) { return 'ttt_inbox_' + email.replace(/[@.]/g, '_'); }
+function getGlobalInboxKey() { return 'ttt_inbox_ALL'; }
+
+function loadInbox() {
+ const msgs = getUserMessages();
+ const list = document.getElementById('inbox-list');
+ if (!list) return;
+ if (!msgs.length) { list.innerHTML = '<div class="inbox-empty">No messages.</div>'; return; }
+ list.innerHTML = msgs.map((m, i) =>
+  '<div class="inbox-msg">'
+  + '<div class="msg-from">From Admin &bull; ' + new Date(m.ts).toLocaleString() + '</div>'
+  + '<div class="msg-text">' + m.text + '</div>'
+  + '</div>'
+ ).join('');
+ // mark as read
+ localStorage.setItem(getInboxKey(currentUser.email) + '_read', Date.now());
+ document.getElementById('inbox-dot').style.display = 'none';
+}
+
+function getUserMessages() {
+ const personal = JSON.parse(localStorage.getItem(getInboxKey(currentUser.email)) || '[]');
+ const global   = JSON.parse(localStorage.getItem(getGlobalInboxKey()) || '[]');
+ return [...global, ...personal].sort((a,b) => b.ts - a.ts);
+}
+
+function checkInboxDot() {
+ const msgs = getUserMessages();
+ if (!msgs.length) { document.getElementById('inbox-dot').style.display = 'none'; return; }
+ const lastRead = parseInt(localStorage.getItem(getInboxKey(currentUser.email) + '_read') || '0');
+ const hasNew = msgs.some(m => m.ts > lastRead);
+ document.getElementById('inbox-dot').style.display = hasNew ? 'inline-block' : 'none';
+}
+
+// ADMIN SEND MESSAGE
+async function adminSendMessage() {
+ const target = document.getElementById('msg-target').value.trim();
+ const text   = document.getElementById('msg-text').value.trim();
+ if (!target || !text) { showToast('Enter a target and message.', 'error'); return; }
+
+ const msg = { text, ts: Date.now(), from: 'Admin' };
+
+ if (target.toUpperCase() === 'ALL') {
+  const all = JSON.parse(localStorage.getItem(getGlobalInboxKey()) || '[]');
+  all.unshift(msg);
+  localStorage.setItem(getGlobalInboxKey(), JSON.stringify(all.slice(0, 20)));
+  showToast('Message sent to all users.', 'success');
+ } else {
+  // find user
+  const db = await dbRead().catch(() => null);
+  const user = db && db.users.find(u => u.email === target || u.username.toLowerCase() === target.toLowerCase());
+  if (!user) { showToast('User not found.', 'error'); return; }
+  const key = getInboxKey(user.email);
+  const existing = JSON.parse(localStorage.getItem(key) || '[]');
+  existing.unshift(msg);
+  localStorage.setItem(key, JSON.stringify(existing.slice(0, 20)));
+  showToast('Message sent to ' + user.username + '.', 'success');
+ }
+ document.getElementById('msg-target').value = '';
+ document.getElementById('msg-text').value = '';
+}
+
+// UNDO
+let lastBoard = null;
+let lastCurrent = null;
+let undoUsed = false;
+
+function doUndo() {
+ if (!lastBoard || undoUsed || gameOver) return;
+ board = lastBoard.slice();
+ current = lastCurrent;
+ undoUsed = true;
+ gameOver = false;
+ lastBoard = null;
+ render();
+ setStatus(current + "'s turn");
+ document.getElementById('undo-btn').disabled = true;
+ showToast('Move undone.', 'info', 1500);
+}
+
+function enableUndo(prevBoard, prevCurrent) {
+ lastBoard = prevBoard.slice();
+ lastCurrent = prevCurrent;
+ undoUsed = false;
+ const btn = document.getElementById('undo-btn');
+ if (btn) btn.disabled = false;
+}
+
+// BAN USER
+async function adminBanUser(email) {
+ const user = adminUsers.find(u => u.email === email);
+ if (!user) return;
+ const isBanned = !!user.banned;
+ const action = isBanned ? 'Unban' : 'Ban';
+ const msg = isBanned
+  ? 'Unban ' + user.username + '? They will be able to log in again.'
+  : 'Ban ' + user.username + '? They will not be able to log in until unbanned.';
+ showModal('', action + ' ' + user.username + '?', msg, 'Yes, ' + action, '#e94560', async () => {
+  try {
+   const db = await dbRead();
+   const idx = db.users.findIndex(u => u.email === email);
+   if (idx !== -1) db.users[idx].banned = !isBanned;
+   await dbWrite(db);
+   user.banned = !isBanned;
+   renderAdminTable();
+   showToast(user.username + ((!isBanned) ? ' banned.' : ' unbanned.'), 'info');
+  } catch(e) { showToast('Action failed. Try again.', 'error'); }
+ });
+}
+
+// EXPORT CSV
+function exportUsersCSV() {
+ const headers = ['Username','Email','Wins','Losses','Draws','Win Rate','Best Streak','High Score','Member Since','Banned'];
+ const rows = adminUsers.map(u => {
+  const games = (u.wins||0)+(u.losses||0)+(u.draws||0);
+  const wr = games > 0 ? Math.round(((u.wins||0)/games)*100)+'%' : '0%';
+  const since = u.createdAt ? new Date(u.createdAt).toLocaleDateString() : '';
+  return [u.username, u.email, u.wins||0, u.losses||0, u.draws||0, wr, u.bestStreak||0, u.highScore||0, since, u.banned?'Yes':'No'];
+ });
+ const csv = [headers, ...rows].map(r => r.map(v => '"'+v+'"').join(',')).join('\n');
+ const blob = new Blob([csv], { type: 'text/csv' });
+ const url  = URL.createObjectURL(blob);
+ const a    = document.createElement('a');
+ a.href = url; a.download = 'tictactoe_users.csv';
+ a.click(); URL.revokeObjectURL(url);
+ showToast('CSV exported.', 'success');
+}
+
+// VIEW FULL STATS (expand row)
+let expandedEmail = null;
+
+function toggleExpand(email) {
+ const escapedId = 'expand-row-' + email.replace(/[@.]/g, '_');
+ const existing = document.getElementById(escapedId);
+ if (existing) { existing.remove(); expandedEmail = null; return; }
+ expandedEmail = email;
+ const user = adminUsers.find(u => u.email === email);
+ if (!user) return;
+ const games = (user.wins||0)+(user.losses||0)+(user.draws||0);
+ const wr = games > 0 ? Math.round(((user.wins||0)/games)*100)+'%' : '0%';
+ const since = user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown';
+ const html = '<tr id="'+escapedId+'" class="admin-expand"><td colspan="6"><div class="expand-grid">'
+  + '<div class="expand-stat"><div class="ev">'+(user.wins||0)+'</div><div class="el">Wins</div></div>'
+  + '<div class="expand-stat"><div class="ev">'+(user.losses||0)+'</div><div class="el">Losses</div></div>'
+  + '<div class="expand-stat"><div class="ev">'+(user.draws||0)+'</div><div class="el">Draws</div></div>'
+  + '<div class="expand-stat"><div class="ev">'+wr+'</div><div class="el">Win Rate</div></div>'
+  + '<div class="expand-stat"><div class="ev">'+(user.bestStreak||0)+'</div><div class="el">Best Streak</div></div>'
+  + '<div class="expand-stat"><div class="ev">'+(user.highScore||0)+'</div><div class="el">High Score</div></div>'
+  + '</div><div style="font-size:0.75rem;color:#555;">Email: '+user.email+' | Member since: '+since+' | Games played: '+games+'</div></td></tr>';
+ // insert after the matching user row
+ const allRows = document.querySelectorAll('#admin-tbody tr');
+ for (const row of allRows) {
+  const nameEl = row.querySelector('strong');
+  if (nameEl && nameEl.textContent === user.username) {
+   row.insertAdjacentHTML('afterend', html);
+   break;
+  }
+ }
+}
+
+// ADMIN DELETE USER
+async function adminDeleteUser(email) {
+ const PROTECTED = ['ibraheem.muhammad.ai@gmail.com'];
+ if (PROTECTED.includes(email)) return;
+ showModal('', 'Delete Player?',
+  'Remove this player and all their stats from the leaderboard permanently?',
+  'Yes, Delete', '#e94560',
+  async () => {
+   try {
+    const db = await dbRead();
+    db.users = db.users.filter(u => u.email !== email);
+    await dbWrite(db);
+    lbUsers = lbUsers.filter(u => u.email !== email);
+    renderLeaderboard();
+   } catch(e) { alert('Failed to delete player. Try again.'); }
+  }
+ );
+}
+
+// FORGOT PASSWORD
+let resetCode = null;
+let resetExpiry = null;
+let resetEmail = null;
+let resendCooldownTimer = null;
+
+function showForgotForm() {
+ document.getElementById('form-login').style.display  = 'none';
+ document.getElementById('form-signup').style.display = 'none';
+ document.getElementById('form-forgot').style.display = '';
+ document.getElementById('form-reset').style.display  = 'none';
+ document.getElementById('tab-login').classList.remove('active');
+ document.getElementById('tab-signup').classList.remove('active');
+ const guestWrap = document.getElementById('guest-btn-wrap');
+ if (guestWrap) guestWrap.style.display = 'none';
+ clearMsg('forgot-msg');
+}
+
+function hideForgotForm() {
+ resetCode = null; resetExpiry = null; resetEmail = null;
+ clearInterval(resendCooldownTimer);
+ switchTab('login');
+}
+
+async function doSendResetCode() {
+ const email = document.getElementById('forgot-email').value.trim().toLowerCase();
+ if (!email) { showMsg('forgot-msg','Enter your email.','error'); return; }
+
+ const btn = document.getElementById('forgot-btn');
+ btn.disabled = true; btn.innerHTML = '<span class="loading-spinner"></span> Sending...';
+ clearMsg('forgot-msg');
+
+ try {
+  const db   = await dbRead();
+  const user = db.users.find(u => u.email === email);
+  if (!user) { showMsg('forgot-msg','No account found with that email.','error'); return; }
+
+  resetCode   = String(Math.floor(100000 + Math.random() * 900000));
+  resetExpiry = Date.now() + 10 * 60 * 1000;
+  resetEmail  = email;
+
+  if (!window.emailjs || IS_SANDBOX) throw new Error('Email sending not available in this environment. Deploy to Vercel to use this feature.');
+  await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+   to_email: email,
+   to_name:  user.username,
+   passcode: resetCode
+  });
+
+  document.getElementById('form-forgot').style.display = 'none';
+  document.getElementById('form-reset').style.display  = '';
+  showMsg('reset-msg','Code sent! Check your inbox.','success');
+  startResendCooldown(60);
+
+ } catch(err) {
+  console.error(err);
+  showMsg('forgot-msg','Failed to send email. Check your EmailJS config.','error');
+ } finally {
+  btn.disabled = false; btn.textContent = 'Send Reset Code';
+ }
+}
+
+async function doResendResetCode() {
+ if (!resetEmail) return;
+ const btn = document.getElementById('resend-reset-btn');
+ btn.disabled = true;
+ try {
+  resetCode   = String(Math.floor(100000 + Math.random() * 900000));
+  resetExpiry = Date.now() + 10 * 60 * 1000;
+  const db   = await dbRead();
+  const user = db.users.find(u => u.email === resetEmail);
+  if (!window.emailjs || IS_SANDBOX) throw new Error('Email sending not available in this environment. Deploy to Vercel to use this feature.');
+  await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+   to_email: resetEmail,
+   to_name:  user ? user.username : '',
+   passcode: resetCode
+  });
+  showMsg('reset-msg','New code sent!','success');
+  startResendCooldown(60);
+ } catch(err) {
+  showMsg('reset-msg','Failed to resend. Try again.','error');
+  btn.disabled = false;
+ }
+}
+
+function startResendCooldown(seconds) {
+ clearInterval(resendCooldownTimer);
+ const btn = document.getElementById('resend-reset-btn');
+ let remaining = seconds;
+ btn.disabled = true;
+ btn.textContent = 'Resend (' + remaining + 's)';
+ resendCooldownTimer = setInterval(() => {
+  remaining--;
+  if (remaining <= 0) {
+   clearInterval(resendCooldownTimer);
+   btn.disabled = false;
+   btn.textContent = 'Resend code';
+  } else {
+   btn.textContent = 'Resend (' + remaining + 's)';
+  }
+ }, 1000);
+}
+
+async function doResetPassword() {
+ const code    = document.getElementById('reset-code-input').value.trim();
+ const newPwd  = document.getElementById('reset-new-pwd').value;
+ const confirm = document.getElementById('reset-confirm-pwd').value;
+ clearMsg('reset-msg');
+
+ if (!code || !newPwd || !confirm) { showMsg('reset-msg','All fields required.','error'); return; }
+ if (newPwd.length < 6)           { showMsg('reset-msg','Password must be at least 6 characters.','error'); return; }
+ if (newPwd !== confirm)           { showMsg('reset-msg','Passwords do not match.','error'); return; }
+ if (Date.now() > resetExpiry)     { showMsg('reset-msg','Code expired. Request a new one.','error'); return; }
+ if (code !== resetCode)           { showMsg('reset-msg','Incorrect code. Try again.','error'); return; }
+
+ const btn = document.getElementById('reset-btn');
+ btn.disabled = true; btn.innerHTML = '<span class="loading-spinner"></span> Resetting...';
+
+ try {
+  const db   = await dbRead();
+  const idx  = db.users.findIndex(u => u.email === resetEmail);
+  if (idx === -1) { showMsg('reset-msg','Account not found.','error'); return; }
+  db.users[idx].passwordHash = await hashPassword(newPwd);
+  await dbWrite(db);
+  clearSession();
+  resetCode = null; resetExpiry = null; resetEmail = null;
+  clearInterval(resendCooldownTimer);
+  showMsg('reset-msg','Password reset! You can now log in.','success');
+  setTimeout(() => switchTab('login'), 2000);
+ } catch(err) {
+  showMsg('reset-msg','Failed to reset. Try again.','error');
+ } finally {
+  btn.disabled = false; btn.textContent = 'Reset Password';
+ }
+}
+
+// ══════════════════════════════════════
+// ADMIN NOTIFICATIONS
+// ══════════════════════════════════════
+async function checkAdminNotifications(bypassThrottle = true) {
+ if (!currentUser || currentUser.email !== 'ibraheem.muhammad.ai@gmail.com') return;
+
+ const btn = document.getElementById('check-notif-btn');
+ const spinner = document.getElementById('notif-spinner');
+
+ if (!bypassThrottle) {
+  const now = Date.now();
+  if (now - lastNotifCheck < NOTIF_THROTTLE) return;
+  lastNotifCheck = now;
+ } else {
+  lastNotifCheck = Date.now();
+ }
+
+ btn.disabled = true;
+ spinner.style.display = 'inline-block';
+
+ try {
+  const db = await dbRead();
+
+  // Collect all unread notifications
+  const notifications = [];
+  const notifs = db.notifications || [];
+  notifs.forEach(n => {
+   if (!n.read) {
+    notifications.push(n);
+   }
+  });
+
+  adminNotifCache = notifications.sort((a, b) => b.ts - a.ts);
+  renderAdminNotifications();
+
+ } catch(e) {
+  console.error('Notif check failed:', e);
+ } finally {
+  btn.disabled = false;
+  spinner.style.display = 'none';
+ }
+}
+
+function renderAdminNotifications() {
+ const list = document.getElementById('admin-notif-list');
+ if (!list) return;
+
+ if (!adminNotifCache.length) {
+  list.innerHTML = '<div style="color:#555;font-size:0.82rem;text-align:center;padding:1rem;">No new requests</div>';
+  return;
+ }
+
+ list.innerHTML = adminNotifCache.slice(0, 10).map(n => `
+  <div style="padding:0.6rem;border-bottom:1px solid #0f346055;font-size:0.8rem;">
+   <div style="color:#a8dadc;font-weight:600;">${n.title || 'Notification'}</div>
+   <div style="color:#666;font-size:0.72rem;margin-top:2px;">${new Date(n.ts).toLocaleTimeString()}</div>
+   <div style="color:#eee;margin-top:4px;">${n.message}</div>
+  </div>
+ `).join('');
+}
+
+// MODAL
+// ══════════════════════════════════════
+let modalCallback = null;
+
+function showModal(icon, title, msg, confirmLabel, confirmStyle, onConfirm) {
+ document.getElementById('modal-icon').textContent    = icon;
+ document.getElementById('modal-title').textContent   = title;
+ document.getElementById('modal-msg').textContent     = msg;
+ const btn = document.getElementById('modal-confirm');
+ btn.textContent       = confirmLabel;
+ btn.style.background  = confirmStyle || '#e94560';
+ btn.style.filter      = '';
+ btn.onmouseover = () => btn.style.filter = 'brightness(0.85)';
+ btn.onmouseout  = () => btn.style.filter = '';
+ btn.onclick = () => { closeModal(); onConfirm(); };
+ // always reset cancel button
+ const cancel = document.getElementById('modal-cancel');
+ cancel.style.display  = '';
+ cancel.textContent    = 'Cancel';
+ cancel.onclick        = () => closeModal();
+ document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function closeModal() {
+ document.getElementById('modal-overlay').style.display = 'none';
+}
+
+// close on backdrop click
+document.addEventListener('DOMContentLoaded', () => {
+ const ov = document.getElementById('modal-overlay');
+ if (ov) ov.addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+});
+
+// ══════════════════════════════════════
+// START
+// ══════════════════════════════════════
+loadTheme();
+tryAutoLogin();
+</script>
+
+<!-- INBOX SCREEN -->
+<div id="inbox-screen" class="screen">
+  <button class="back-btn" onclick="showScreen('home')">Back</button>
+  <div class="screen-title">Inbox</div>
+  <div class="screen-sub">MESSAGES FROM ADMIN</div>
+  <div class="inbox-card" id="inbox-list">
+    <div class="inbox-empty">No messages.</div>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-screen" class="screen">
+  <button class="back-btn" onclick="showScreen('home')">Back</button>
+  <div class="screen-title">Super Admin</div>
+  <div class="screen-sub">FULL CONTROL PANEL</div>
+
+  <div class="admin-stat-row">
+    <div class="admin-stat"><div class="a-val" id="adm-users">-</div><div class="a-label">Total Users</div></div>
+    <div class="admin-stat"><div class="a-val" id="adm-games">-</div><div class="a-label">Total Games</div></div>
+    <div class="admin-stat"><div class="a-val" id="adm-wins">-</div><div class="a-label">Total Wins</div></div>
+  </div>
+
+  <!-- NOTIFICATIONS SECTION -->
+  <div class="admin-notif-section">
+    <h3>Notifications</h3>
+    <button class="auth-btn" id="check-notif-btn" onclick="checkAdminNotifications(true)" style="width:100%;margin-bottom:0.8rem;">
+      <span id="notif-spinner" style="display:none;" class="loading-spinner"></span>
+      ✓ Check for New Requests
+    </button>
+    <div class="admin-notif-list" id="admin-notif-list">
+      <div style="color:#555;font-size:0.82rem;text-align:center;padding:1rem;">No new requests</div>
     </div>
-
-    <!-- ==================== PAUSE OVERLAY ==================== -->
-    <div id="pauseOverlay">
-        <div id="pauseBox">
-            <h2>⏸️ PAUSED</h2>
-            <p>Score: <strong id="pauseScore">0</strong></p>
-            <p>Level: <strong id="pauseLevel">1</strong></p>
-            <div class="pause-controls">
-                <button id="resumeBtn" class="secondary-btn">▶️ Resume (ESC)</button>
-                <button id="pauseMenuBtn" class="secondary-btn" style="background-color: #d9534f;">🏠 Back to Menu</button>
-            </div>
-        </div>
+  </div>
+<!-- SIGNUP REQUESTS SECTION -->
+  <div class="admin-notif-section">
+    <h3> Pending Signup Requests</h3>
+    <div id="signup-requests-list" style="max-height:250px;overflow-y:auto;">
+      <div style="color:#555;font-size:0.82rem;text-align:center;padding:1.5rem;">Loading requests...</div>
     </div>
-
-    <!-- ==================== MODALS ==================== -->
-    <div id="confirmModalOverlay">
-        <div id="confirmModalBox">
-            <h3 id="confirmModalTitle">Are you sure?</h3>
-            <p id="confirmModalMessage">Please confirm this action.</p>
-            <div id="confirmModalActions">
-                <button id="confirmModalYes" class="accept-btn">✅ Yes</button>
-                <button id="confirmModalNo" class="decline-btn">❌ Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="infoModalOverlay">
-        <div id="infoModalBox">
-            <p id="infoModalMessage"></p>
-            <div class="menu-element" style="margin-top: 10px;">
-                <button id="infoModalOkBtn">OK</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="timeInputModalOverlay">
-        <div id="timeInputModalBox">
-            <h3 id="timeInputModalTitle">Grant extra time</h3>
-            <p id="timeInputModalMessage">How much time should they get?</p>
-            <div class="menu-element" style="align-items: flex-start; margin: 0 0 15px 0;">
-                <input id="timeInputHours" type="number" min="0" placeholder="Hours" style="margin-bottom: 8px;">
-                <input id="timeInputMinutes" type="number" min="0" max="59" placeholder="Minutes">
-            </div>
-            <div id="timeInputModalActions">
-                <button id="timeInputConfirmBtn" class="accept-btn">✅ Grant Time</button>
-                <button id="timeInputCancelBtn" class="decline-btn">❌ Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== 2FA SETUP MODAL ==================== -->
-    <div id="twoFASetupOverlay">
-        <div id="twoFASetupBox">
-            <h3 id="twoFASetupTitle">🔐 Setup Google Authenticator</h3>
-            <p id="twoFASetupMessage">Scan this QR code with your authenticator app:</p>
-            <div class="qr-code-container">
-                <img id="qrCodeImg" src="" alt="QR Code">
-            </div>
-            <p style="font-size: 12px; color: var(--label-color); margin: 10px 0;">Or enter this secret manually:</p>
-            <div class="secret-key-display" id="secretKeyDisplay"></div>
-            <button id="copySecretBtn" class="copy-secret-btn secondary-btn">📋 Copy Secret</button>
-            <p style="font-size: 12px; margin: 10px 0; color: var(--text-color);">Enter the 6-digit code from your app:</p>
-            <input id="twoFACodeInput" type="text" placeholder="000000" maxlength="6" style="margin-bottom: 15px;">
-            <div id="twoFASetupActions">
-                <button id="twoFAConfirmBtn" class="accept-btn">✅ Verify & Enable</button>
-                <button id="twoFACancelBtn" class="decline-btn">❌ Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== 2FA LOGIN MODAL ==================== -->
-    <div id="twoFALoginOverlay">
-        <div id="twoFALoginBox">
-            <h3 style="color: #FFD700; margin: 0 0 12px 0;">🔐 Enter Authenticator Code</h3>
-            <p style="color: var(--text-color); margin: 0 0 15px 0;">Enter the 6-digit code from your Google Authenticator app:</p>
-            <input id="twoFALoginCodeInput" type="text" placeholder="000000" maxlength="6" style="margin-bottom: 15px;">
-            <div style="display: flex; gap: 10px;">
-                <button id="twoFALoginConfirmBtn" class="accept-btn">✅ Verify</button>
-                <button id="twoFALoginCancelBtn" class="decline-btn">❌ Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- EmailJS SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <!-- QR Code Generator -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-    <!-- Chart.js for admin dashboard -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-
-    <script>
-        // ============ CORE SETUP ============
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        
-        // DOM Elements
-        const menu = document.getElementById("menu");
-        const loginPanel = document.getElementById("loginPanel");
-        const mainMenuPanel = document.getElementById("mainMenuPanel");
-        const settingsPanel = document.getElementById("settingsPanel");
-        const termsPanel = document.getElementById("termsPanel");
-        const statsDiv = document.getElementById("stats");
-        const controlsDiv = document.getElementById("controls");
-
-        // Game state
-        let score = 0;
-        let level = 1;
-        let playStreak = 0;
-        let highScore = 0;
-        let gameActive = false;
-        let gamePaused = false;
-        let animationId;
-        let gameSeconds = 0;
-        let timerInterval = null;
-
-        // Colorblind mode
-        let colorblindMode = localStorage.getItem("starCollectorColorblind") || "normal";
-        
-        // ============ KEYBOARD SHORTCUTS ============
-        document.addEventListener("keydown", (e) => {
-            // ESC to go back or pause
-            if (e.key === "Escape") {
-                if (gameActive) {
-                    togglePause();
-                } else if (!loginPanel.style.display || loginPanel.style.display === "none") {
-                    // Go back to main menu if on any panel
-                    if (mainMenuPanel.style.display === "block") {
-                        // Already on main menu, do nothing
-                    } else {
-                        mainMenuPanel.style.display = "block";
-                        settingsPanel.style.display = "none";
-                        termsPanel.style.display = "none";
-                        updateURL("Home-Page");
-                    }
-                }
-            }
-
-            // Arrow keys for menu navigation (up/down between buttons)
-            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-                handleMenuNavigation(e.key);
-            }
-
-            // Enter to click focused button
-            if (e.key === "Enter" && document.activeElement instanceof HTMLButtonElement) {
-                document.activeElement.click();
-                e.preventDefault();
-            }
-        });
-
-        function handleMenuNavigation(direction) {
-            const buttons = Array.from(document.querySelectorAll("button:not(:disabled)"));
-            const focused = document.activeElement;
-            const focusedIndex = buttons.indexOf(focused);
-
-            if (focusedIndex === -1) {
-                buttons[0]?.focus();
-                return;
-            }
-
-            if (direction === "ArrowDown") {
-                buttons[(focusedIndex + 1) % buttons.length]?.focus();
-            } else {
-                buttons[(focusedIndex - 1 + buttons.length) % buttons.length]?.focus();
-            }
-        }
-
-        // ============ PAUSE FEATURE ============
-        const pauseOverlay = document.getElementById("pauseOverlay");
-        const pauseScore = document.getElementById("pauseScore");
-        const pauseLevel = document.getElementById("pauseLevel");
-        const resumeBtn = document.getElementById("resumeBtn");
-        const pauseMenuBtn = document.getElementById("pauseMenuBtn");
-        const pauseGameBtn = document.getElementById("pauseGameBtn");
-
-        function togglePause() {
-            if (!gameActive) return;
-
-            gamePaused = !gamePaused;
-
-            if (gamePaused) {
-                // Pause the game
-                pauseOverlay.classList.add("active");
-                pauseScore.textContent = score;
-                pauseLevel.textContent = level;
-                if (timerInterval) clearInterval(timerInterval);
-                cancelAnimationFrame(animationId);
-                pauseGameBtn.textContent = "▶️ Resume (ESC)";
-            } else {
-                // Resume the game
-                pauseOverlay.classList.remove("active");
-                pauseGameBtn.textContent = "⏸️ Pause Game (ESC)";
-                timerInterval = setInterval(() => {
-                    gameSeconds++;
-                    updateTimerDisplay();
-                }, 1000);
-                updateGame();
-            }
-        }
-
-        pauseGameBtn.addEventListener("click", togglePause);
-        resumeBtn.addEventListener("click", togglePause);
-
-        pauseMenuBtn.addEventListener("click", async () => {
-            gamePaused = false;
-            gameActive = false;
-            pauseOverlay.classList.remove("active");
-            cancelAnimationFrame(animationId);
-            stopTimer();
-            stopActivePlayDeduction();
-            inGameLimitBox.style.display = "none";
-
-            statsDiv.style.display = "none";
-            canvas.style.display = "none";
-            controlsDiv.style.display = "none";
-            menu.style.display = "block";
-            mainMenuPanel.style.display = "block";
-            updateURL("Home-Page");
-            startPlayTimeBadgeTicker();
-        });
-
-        // ============ PASSWORD STRENGTH METER ============
-        const authPassword = document.getElementById("authPassword");
-        const strengthMeter = document.getElementById("strengthMeter");
-        const strengthBar = document.getElementById("strengthBar");
-        const strengthText = document.getElementById("strengthText");
-
-        authPassword.addEventListener("input", (e) => {
-            const password = e.target.value;
-            let strength = calculatePasswordStrength(password);
-
-            if (password.length === 0) {
-                strengthMeter.style.display = "none";
-                strengthText.style.display = "none";
-                return;
-            }
-
-            strengthMeter.style.display = "block";
-            strengthText.style.display = "block";
-
-            strengthBar.className = "password-strength-bar";
-            strengthText.className = "password-strength-text";
-
-            if (strength === "weak") {
-                strengthBar.classList.add("weak");
-                strengthText.classList.add("weak");
-                strengthText.textContent = "Weak password";
-            } else if (strength === "fair") {
-                strengthBar.classList.add("fair");
-                strengthText.classList.add("fair");
-                strengthText.textContent = "Fair password";
-            } else if (strength === "good") {
-                strengthBar.classList.add("good");
-                strengthText.classList.add("good");
-                strengthText.textContent = "Good password";
-            } else if (strength === "strong") {
-                strengthBar.classList.add("strong");
-                strengthText.classList.add("strong");
-                strengthText.textContent = "Strong password";
-            }
-        });
-
-        function calculatePasswordStrength(password) {
-            let score = 0;
-
-            if (password.length >= 4) score++;
-            if (password.length >= 8) score++;
-            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
-            if (/[0-9]/.test(password)) score++;
-            if (/[!@#$%^&*]/.test(password)) score++;
-
-            if (score <= 1) return "weak";
-            if (score <= 2) return "fair";
-            if (score <= 3) return "good";
-            return "strong";
-        }
-
-        // ============ COLORBLIND MODE ============
-        const colorblindModeSelect = document.getElementById("colorblindMode");
-
-        colorblindModeSelect.addEventListener("change", (e) => {
-            colorblindMode = e.target.value;
-            localStorage.setItem("starCollectorColorblind", colorblindMode);
-
-            if (colorblindMode === "normal") {
-                document.documentElement.removeAttribute("data-colorblind");
-            } else {
-                document.documentElement.setAttribute("data-colorblind", colorblindMode);
-            }
-        });
-
-        // Apply saved colorblind mode on load
-        if (colorblindMode !== "normal") {
-            document.documentElement.setAttribute("data-colorblind", colorblindMode);
-            colorblindModeSelect.value = colorblindMode;
-        }
-
-        // ============ FONT SIZE ACCESSIBILITY ============
-        const fontSizeSelect = document.getElementById("fontSizeSelect");
-
-        fontSizeSelect.addEventListener("change", (e) => {
-            const fontSize = e.target.value;
-            localStorage.setItem("starCollectorFontSize", fontSize);
-
-            if (fontSize === "small") {
-                document.body.style.fontSize = "14px";
-            } else if (fontSize === "large") {
-                document.body.style.fontSize = "18px";
-            } else {
-                document.body.style.fontSize = "16px";
-            }
-        });
-
-        // Apply saved font size on load
-        const savedFontSize = localStorage.getItem("starCollectorFontSize") || "normal";
-        fontSizeSelect.value = savedFontSize;
-        if (savedFontSize === "small") {
-            document.body.style.fontSize = "14px";
-        } else if (savedFontSize === "large") {
-            document.body.style.fontSize = "18px";
-        }
-
-        // ============ ADMIN FEATURES (Placeholder) ============
-        // These would need full implementation with backend integration
-
-        // Helper functions (abbreviated versions for file size)
-        function showInfo(message) {
-            return new Promise((resolve) => {
-                document.getElementById("infoModalMessage").textContent = message;
-                document.getElementById("infoModalOverlay").classList.add("active");
-                document.getElementById("infoModalOkBtn").onclick = () => {
-                    document.getElementById("infoModalOverlay").classList.remove("active");
-                    resolve();
-                };
-            });
-        }
-
-        function updateURL(path) {
-            try {
-                const newUrl = `${window.location.origin}/${path}`;
-                if (window.location.href !== newUrl) {
-                    window.history.pushState({ path: path }, "", newUrl);
-                }
-            } catch (e) {
-                console.warn("[URL] Could not update URL:", e.message);
-            }
-        }
-
-        function updateTimerDisplay() {
-            const minutes = Math.floor(gameSeconds / 60);
-            const seconds = gameSeconds % 60;
-            const formattedMinutes = minutes < 10 ? "0" + minutes : minutes;
-            const formattedSeconds = seconds < 10 ? "0" + seconds : seconds;
-            document.getElementById("timerText").textContent = `${formattedMinutes}:${formattedSeconds}`;
-        }
-
-        function stopTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-        }
-
-        function stopActivePlayDeduction() {
-            // Placeholder
-        }
-
-        function startPlayTimeBadgeTicker() {
-            // Placeholder
-        }
-
-        // Star game variables
-        let starX = canvas.width / 2;
-        let starY = canvas.height / 2;
-        const normalRadius = 20;
-        const giantRadius = 40;
-        let currentRadius = normalRadius;
-
-        let baseSpeedX = 0;
-        let baseSpeedY = 0;
-        let speedX = 0;
-        let speedY = 0;
-        let speedMultiplier = 1;
-
-        function drawStar(cx, cy, spikes, outerRadius, innerRadius) {
-            let rot = Math.PI / 2 * 3;
-            let x = cx;
-            let y = cy;
-            let step = Math.PI / spikes;
-
-            ctx.beginPath();
-            ctx.moveTo(cx, cy - outerRadius);
-            
-            for (let i = 0; i < spikes; i++) {
-                x = cx + Math.cos(rot) * outerRadius;
-                y = cy + Math.sin(rot) * outerRadius;
-                ctx.lineTo(x, y);
-                rot += step;
-
-                x = cx + Math.cos(rot) * innerRadius;
-                y = cy + Math.sin(rot) * innerRadius;
-                ctx.lineTo(x, y);
-                rot += step;
-            }
-            
-            ctx.lineTo(cx, cy - outerRadius);
-            ctx.closePath();
-            ctx.fillStyle = "var(--star-color)";
-            ctx.fill();
-            ctx.strokeStyle = "var(--star-stroke)";
-            ctx.lineWidth = 3;
-            ctx.stroke();
-        }
-
-        function updateGame() {
-            if (!gameActive || gamePaused) return;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            starX += speedX;
-            starY += speedY;
-
-            if (starX - currentRadius < 0 || starX + currentRadius > canvas.width) {
-                speedX = -speedX;
-            }
-            if (starY - currentRadius < 0 || starY + currentRadius > canvas.height) {
-                speedY = -speedY;
-            }
-
-            drawStar(starX, starY, 5, currentRadius, currentRadius / 2);
-
-            animationId = requestAnimationFrame(updateGame);
-        }
-
-        function updateSpeedForLevel() {
-            const levelIncreases = level - 1;
-            speedX = speedX > 0 ? baseSpeedX + (levelIncreases * speedMultiplier) : -baseSpeedX - (levelIncreases * speedMultiplier);
-            speedY = speedY > 0 ? baseSpeedY + (levelIncreases * speedMultiplier) : -baseSpeedY - (levelIncreases * speedMultiplier);
-        }
-
-        // Game buttons
-        document.getElementById("startBtn").addEventListener("click", async function() {
-            const difficulty = document.getElementById("difficulty").value;
-
-            if (difficulty === "easy") {
-                baseSpeedX = 2; baseSpeedY = 1.5; speedMultiplier = 0.5;
-            } else if (difficulty === "medium") {
-                baseSpeedX = 4; baseSpeedY = 3; speedMultiplier = 1;
-            } else if (difficulty === "hard") {
-                baseSpeedX = 7; baseSpeedY = 5; speedMultiplier = 1.5;
-            }
-
-            speedX = baseSpeedX;
-            speedY = baseSpeedY;
-            score = 0;
-            level = 1;
-            gameSeconds = 0;
-            gamePaused = false;
-            
-            document.getElementById("scoreText").textContent = score;
-            document.getElementById("levelText").textContent = level;
-            updateTimerDisplay();
-
-            starX = canvas.width / 2;
-            starY = canvas.height / 2;
-            currentRadius = normalRadius;
-
-            menu.style.display = "none";
-            statsDiv.style.display = "flex";
-            canvas.style.display = "block";
-            controlsDiv.style.display = "block";
-            updateURL("Playing-Game");
-
-            timerInterval = setInterval(() => {
-                gameSeconds++;
-                updateTimerDisplay();
-            }, 1000);
-
-            gameActive = true;
-            updateGame();
-        });
-
-        canvas.addEventListener("click", function(event) {
-            if (!gameActive || gamePaused) return;
-
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = (event.clientX - rect.left) * (canvas.width / rect.width);
-            const mouseY = (event.clientY - rect.top) * (canvas.height / rect.height);
-
-            const distance = Math.sqrt((mouseX - starX) ** 2 + (mouseY - starY) ** 2);
-
-            if (distance < currentRadius) {
-                score++;
-                document.getElementById("scoreText").textContent = score;
-
-                if (score > highScore) {
-                    highScore = score;
-                    document.getElementById("highScoreText").textContent = highScore;
-                }
-
-                currentRadius = giantRadius;
-                setTimeout(() => {
-                    currentRadius = normalRadius;
-                }, 200);
-
-                if (score % 5 === 0) {
-                    level++;
-                    document.getElementById("levelText").textContent = level;
-                    updateSpeedForLevel();
-                }
-            }
-        });
-
-        document.getElementById("endGameBtn").addEventListener("click", async function() {
-            const confirmed = confirm("End game? Progress will NOT be saved.");
-            if (!confirmed) return;
-
-            gameActive = false;
-            gamePaused = false;
-            pauseOverlay.classList.remove("active");
-            cancelAnimationFrame(animationId);
-            stopTimer();
-
-            statsDiv.style.display = "none";
-            canvas.style.display = "none";
-            controlsDiv.style.display = "none";
-            menu.style.display = "block";
-            mainMenuPanel.style.display = "block";
-            updateURL("Home-Page");
-        });
-
-        document.getElementById("settingsBtn").addEventListener("click", () => {
-            mainMenuPanel.style.display = "none";
-            settingsPanel.style.display = "block";
-            updateURL("Settings");
-        });
-
-        document.getElementById("backBtn").addEventListener("click", () => {
-            settingsPanel.style.display = "none";
-            mainMenuPanel.style.display = "block";
-            updateURL("Home-Page");
-        });
-
-        document.getElementById("termsBtn").addEventListener("click", () => {
-            mainMenuPanel.style.display = "none";
-            termsPanel.style.display = "block";
-            updateURL("Terms");
-        });
-
-        document.getElementById("backFromTermsBtn").addEventListener("click", () => {
-            termsPanel.style.display = "none";
-            mainMenuPanel.style.display = "block";
-            updateURL("Home-Page");
-        });
-
-        // Load saved colorblind mode
-        colorblindModeSelect.value = colorblindMode;
-    </script>
+  </div>
+  <div class="admin-msg-form">
+    <h3>Send Message to Player</h3>
+    <div class="field" style="margin-bottom:0.6rem;"><label>Player Email</label><input type="text" id="msg-target" placeholder="player@email.com or ALL"></div>
+    <div class="field" style="margin-bottom:0.6rem;"><label>Message</label><input type="text" id="msg-text" placeholder="Your message..."></div>
+    <button class="auth-btn" onclick="adminSendMessage()" style="margin-top:0;">Send Message</button>
+  </div>
+
+  <div style="display:flex;gap:0.5rem;margin-bottom:0.8rem;align-items:center;">
+    <input class="admin-search" id="admin-search" type="text" placeholder="Search player..." oninput="renderAdminTable()" style="margin-bottom:0;flex:1;">
+    <button onclick="exportUsersCSV()" style="padding:0.55rem 0.9rem;background:transparent;border:2px solid #0f3460;color:#a8dadc;border-radius:8px;cursor:pointer;font-size:0.8rem;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.borderColor='#a8dadc'" onmouseout="this.style.borderColor='#0f3460'">Export CSV</button>
+  </div>
+
+  <div class="lb-card">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th>W</th>
+          <th>L</th>
+          <th>D</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="admin-tbody">
+        <tr><td colspan="6" class="lb-empty">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast-container"></div>
+
+<!-- CONFIRMATION MODAL -->
+<div id="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:999; align-items:center; justify-content:center;">
+ <div style="background:#16213e; border:2px solid #0f3460; border-radius:16px; padding:2rem; max-width:320px; width:90%; text-align:center; animation:modalIn 0.2s ease;">
+ <div id="modal-icon" style="font-size:2.5rem; margin-bottom:0.8rem;"></div>
+ <div id="modal-title" style="font-size:1.1rem; font-weight:700; color:#eee; margin-bottom:0.5rem; letter-spacing:1px;"></div>
+ <div id="modal-msg" style="font-size:0.85rem; color:#666; margin-bottom:1.8rem; line-height:1.5;"></div>
+ <div style="display:flex; gap:0.7rem; justify-content:center;">
+ <button id="modal-cancel" onclick="closeModal()" style="flex:1; padding:0.7rem; background:transparent; color:#888; border:2px solid #0f3460; border-radius:10px; cursor:pointer; font-size:0.9rem; transition:all 0.2s;" onmouseover="this.style.borderColor='#a8dadc';this.style.color='#a8dadc'" onmouseout="this.style.borderColor='#0f3460';this.style.color='#888'">Cancel</button>
+ <button id="modal-confirm" style="flex:1; padding:0.7rem; background:#e94560; color:#fff; border:none; border-radius:10px; cursor:pointer; font-size:0.9rem; font-weight:600; transition:all 0.2s;" onmouseover="this.style.background='#c73652'" onmouseout="this.style.background='#e94560'">Confirm</button>
+</div>
+</div>
+</div>
+<style>
+ @keyframes modalIn { from { transform:scale(0.85); opacity:0; } to { transform:scale(1); opacity:1; } }
+</style>
 
 </body>
 </html>
