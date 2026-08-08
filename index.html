@@ -594,8 +594,8 @@
 </div>
 
  <div class="ie-card">
- <h3> Import / Restore Scores</h3>
- <p style="color:#555;font-size:0.82rem;margin-bottom:0.8rem;">Paste your exported JSON below and hit Restore.</p>
+ <h3> Import / Restore All Scores</h3>
+ <p style="color:#555;font-size:0.82rem;margin-bottom:0.8rem;">Paste your exported json below and hit Restore Button.</p>
  <textarea class="ie-textarea" id="import-input" placeholder='{"wins":10,"losses":3,"draws":2,"highScore":7,"bestStreak":5}'></textarea>
  <button class="ie-btn green" onclick="doImport()">↑ Restore Scores</button>
  <div class="ie-msg" id="ie-msg"></div>
@@ -904,7 +904,9 @@ async function doLogin() {
   currentUser = user;
   if (document.getElementById('remember-me') && document.getElementById('remember-me').checked) saveSession(currentUser);
   setLoading('login-btn', false, 'Login');
-  enterHome(); return;
+  enterHome();
+  updateURL"Home"
+   return;
  }
 
  try {
