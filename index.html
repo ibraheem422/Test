@@ -904,9 +904,7 @@ async function doLogin() {
   currentUser = user;
   if (document.getElementById('remember-me') && document.getElementById('remember-me').checked) saveSession(currentUser);
   setLoading('login-btn', false, 'Login');
-  enterHome();
-  updateURL"Home"
-   return;
+  enterHome(); return;
  }
 
  try {
